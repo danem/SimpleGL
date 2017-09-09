@@ -13,10 +13,10 @@ const int KEY_PRESS         = 1 << 5;
 const int KEY_RELEASE       = 1 << 6;
 const int KEY_REPEAT        = 1 << 7;
 
-const int MOUSE_BTN_NONE   = 1 << 0;
-const int MOUSE_BTN_LEFT   = 1 << 1;
-const int MOUSE_BTN_RIGHT  = 1 << 2;
-const int MOUSE_BTN_MIDDLE = 1 << 3;
+const int MOUSE_BTN_NONE   = 0;
+const int MOUSE_BTN_LEFT   = 1 << 0;
+const int MOUSE_BTN_RIGHT  = 1 << 1;
+const int MOUSE_BTN_MIDDLE = 1 << 2;
 
 struct KeyEvent {
     int eventType;
@@ -52,7 +52,7 @@ struct MouseDragState {
     double dx, dy;
 };
 
-class MouseDragger : MouseController {
+class MouseDraggerBase : MouseController {
 private:
     bool _isDragging;
     double _ox, _oy;
@@ -60,17 +60,16 @@ private:
     int _dragButton;
 
 public:
-    MouseDragger (int dragButton = MOUSE_BTN_LEFT) :
+    MouseDraggerBase (int dragButton = MOUSE_BTN_LEFT) :
         _dragButton(dragButton)
     {}
 
     // MouseHandler
-    void operator() (const MouseEvent& event) override;
+    virtual void operator() (const MouseEvent& event) override;
 
     virtual void onDragStart () = 0;
     virtual void onDrag (double ox, double oy, double mx, double my, double dx, double dy) = 0;
     virtual void onDragEnd () = 0;
 };
-
 
 }

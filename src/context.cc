@@ -29,6 +29,7 @@ static void __handleMouseInput (GLFWwindow* window, int btn, int action, int mod
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
     int button;
     for (auto handler : state->mouseHandlers) {
+
     }
 }
 

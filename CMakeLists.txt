@@ -49,6 +49,7 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/shader.h
     ${INCLUDE_DIR}/SimpleGL/texture.h
     ${INCLUDE_DIR}/SimpleGL/traits.h
+    ${INCLUDE_DIR}/SimpleGL/transform.h
     ${INCLUDE_DIR}/SimpleGL/utils.h
     ${INCLUDE_DIR}/SimpleGL/window-provider.h
 )
@@ -59,6 +60,7 @@ set(SOURCE_FILES
     ${SOURCE_DIR}/event.cc
     ${SOURCE_DIR}/mesh.cc
     ${SOURCE_DIR}/shader.cc
+    ${SOURCE_DIR}/transform.cc
     ${SOURCE_DIR}/utils.cc
 )
 
@@ -109,4 +111,5 @@ if(${SGL_COMPILE_TESTS})
     test_target(size-test ${TEST_DIR}/size-test.cc)
     test_target(texture-test ${TEST_DIR}/texture-test.cc)
     test_target(traits-test ${TEST_DIR}/traits-test.cc)
+    test_target(mouse-test ${TEST_DIR}/mouse-test.cc)
 endif()

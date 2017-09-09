@@ -1,14 +1,14 @@
 #pragma once
 
 #include "sglconfig.h"
-#include "traits.h"
+
 #include "camera.h"
-#include "param.h"
-#include "event.h"
 #include "context.h"
+#include "event.h"
+#include "mesh.h"
+#include "param.h"
 #include "resource.h"
 #include "shader.h"
 #include "texture.h"
-#include "mesh.h"
-
-
+#include "traits.h"
+#include "transform.h"

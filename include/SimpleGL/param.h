@@ -126,6 +126,11 @@ public:
         incrementer(false,value,step);
         printer(name,value);
     }
+
+    void set (const V& newValue) {
+        value = newValue;
+        printer(name,value);
+    }
 };
 
 

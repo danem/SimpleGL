@@ -1,12 +1,15 @@
 #include <SimpleGL/event.h>
+#include <iostream>
 
 using namespace sgl;
 
 
-void MouseDragger::operator() (const MouseEvent& event) {
+void MouseDraggerBase::operator() (const MouseEvent& event) {
     if (!event.isOverWindow) return;
     if (event.usesButton(_dragButton)) {
+        std::cout << event.button << std::endl;
         if (event.eventType == MOUSE_PRESS) {
+            std::cout << "foo\n";
             _isDragging = true;
             onDragStart();
         } else if (event.eventType == MOUSE_MOVE && _isDragging) {
@@ -26,4 +29,8 @@ void MouseDragger::operator() (const MouseEvent& event) {
             _isDragging = false;
         }
     }
+}
+
+bool MouseEvent::usesButton (int btn) const {
+    return button & btn == btn;
 }
