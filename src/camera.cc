@@ -1,3 +1,5 @@
+#ifdef SGL_USE_GLM
+
 #include <SimpleGL/camera.h>
 #include "glm/ext.hpp"
 
@@ -11,6 +13,10 @@ void CameraBase::update () {
     updateViewMatrix();
 }
 
+float * CameraBase::getView () {
+    return glm::value_ptr(viewMatrix);
+}
+
 void PerspectiveCamera::updateProjection () {
     aspect = width / height;
     float _fov = glm::degrees(2.f * (float)glm::atan((glm::tan(glm::radians(fov * 0.5f)) / zoom)));
@@ -20,6 +26,10 @@ void PerspectiveCamera::updateProjection () {
 void PerspectiveCamera::update () {
     CameraBase::update();
     updateProjection();
+}
+
+float * PerspectiveCamera::getProjection () {
+    return glm::value_ptr(perspectiveMatrix);
 }
 
 void OrthoCamera::updateProjection () {
@@ -39,3 +49,9 @@ void OrthoCamera::setFrustrum (float left, float right, float top, float bottom,
     this->near   = near;
     this->far    = far;
 }
+
+float * OrthoCamera::getProjection () {
+    return glm::value_ptr(perspectiveMatrix);
+}
+
+#endif

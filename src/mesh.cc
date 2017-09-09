@@ -17,8 +17,10 @@ int MeshBuilder::vertexCount () const {
     return data.indices.size();
 }
 
-MeshResource::MeshResource (const MeshData& data) {
-    auto va = sgl::bind_guard(VAO);
+MeshResource::MeshResource (const MeshData& data) :
+    size(data.indices.size())
+{
+    this->bind();
 
     VBO.bind();
     glBufferData(VBO.type, data.vertices.size() * sizeof(MeshVertex), &data.vertices[0], GL_STATIC_DRAW);
@@ -34,9 +36,11 @@ MeshResource::MeshResource (const MeshData& data) {
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (GLvoid*)offsetof(MeshVertex,normal));
+
+    this->unbind();
 }
 
-MeshResource createPlane (int divs) {
+sgl::MeshResource sgl::createPlane (int divs) {
     float scale = 1.0f / divs;
     float hd = divs / 2.0f;
     MeshBuilder m;

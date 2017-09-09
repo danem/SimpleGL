@@ -160,6 +160,22 @@ GLSharedResource<kind> shared_resource (GLuint res) {
     }};
 }
 
+template <class Res>
+GLSharedResource<Res::type> shared_resource () {
+    return {new Res(), [](Res* r) {
+        r->release();
+        delete r;
+    }};
+}
+
+template <class Res, class V>
+GLSharedResource<Res::type> shared_resource (V value) {
+    return {new Res(value), [](Res* r) {
+        r->release();
+        delete r;
+    }};
+}
+
 
 
 namespace detail {

@@ -17,17 +17,19 @@ public:
 
     CameraBase () :
         up(0.f, 1.f, 0.f)
-    {}
+    {
+        update();
+    }
 
     void updateViewMatrix ();
     virtual void update ();
+    float * getView ();
 };
 
 class PerspectiveCamera : public CameraBase {
 protected:
 public:
-    void updateProjection ();
-    void update () override;
+
 
     glm::mat4 perspectiveMatrix;
 
@@ -43,7 +45,13 @@ public:
     PerspectiveCamera (int w, int h) :
         CameraBase(),
         width(w), height(h), aspect((float)w/h)
-    {}
+    {
+        update();
+    }
+
+    void updateProjection ();
+    void update () override;
+    float * getProjection ();
 
 };
 
@@ -51,8 +59,6 @@ class OrthoCamera : public CameraBase {
 protected:
 public:
 
-    void updateProjection ();
-    void update () override;
 
     glm::mat4 perspectiveMatrix;
 
@@ -67,10 +73,15 @@ public:
     OrthoCamera (float near, float far) :
         CameraBase(),
         near(near), far(far)
-    {}
+    {
+        update();
+    }
+
+    void updateProjection ();
+    void update () override;
+    float * getProjection ();
 
     void setFrustrum (float left, float right, float top, float bottom, float near, float far);
-
     
 };
 

@@ -31,20 +31,22 @@ public:
     int vertexCount () const;
 };
 
-class MeshResource {
+class MeshResource : public GLResource<GL_VERTEX_ARRAY>{
 private:
-    GLResource<GL_VERTEX_ARRAY> VAO;
     GLResource<GL_ARRAY_BUFFER> VBO;
     GLResource<GL_ELEMENT_ARRAY_BUFFER> EBO;
 
 public:
+    size_t size;
+
     MeshResource (const MeshData& data);
 
-    ~MeshResource () {
-        VAO.release();
+    void release () {
+        GLResource<GL_VERTEX_ARRAY>::release();
         VBO.release();
         EBO.release();
     }
+
 };
 
 MeshResource createPlane (int divs);

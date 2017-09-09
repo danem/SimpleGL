@@ -27,26 +27,6 @@ namespace detail {
         if (sign) value += step;
         else value -= step;
     }
-
-    void PrintVec3 (const char * name, const glm::vec3& vec) {
-        std::cout << name << ": {" << vec.x << ", " << vec.y << ", " << vec.z << "}" << std::endl;
-    }
-
-    void AddX (bool sign, glm::vec3& vec, float v) {
-        if (sign) vec.x += v;
-        else vec.x -= v;
-    }
-
-    void AddY (bool sign, glm::vec3& vec, float v) {
-        if (sign) vec.y += v;
-        else vec.y -= v;
-    }
-
-    void AddZ (bool sign, glm::vec3& vec, float v) {
-        if (sign) vec.z += v;
-        else vec.z -= v;
-    }
-
 } // end namespace
 
 template <

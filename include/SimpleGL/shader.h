@@ -62,7 +62,7 @@ namespace detail {
 } // namespace
 
 // TODO: Make this a GLResource
-class Shader : private GLResource<GL_PROGRAM> {
+class Shader : public GLResource<GL_PROGRAM> {
 private:
     GLint getLocation (const char * id);
 
