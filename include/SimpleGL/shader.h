@@ -104,7 +104,7 @@ public:
         setTexture(id, kind, (GLuint)texture, unit);
     }
 
-    GLint setTexture (const std::string& id, GLenum target, int handle, int textureUnit);
+    GLint setTexture (const std::string& id, GLenum target, GLuint handle, int textureUnit);
 
 };
 

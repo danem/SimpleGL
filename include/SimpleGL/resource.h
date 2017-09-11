@@ -88,24 +88,34 @@ protected:
 public:
     static const GLenum type = kind;
 
-    GLResource () {
+    GLResource () : 
+        _isBound(false)
+    {
         _iface.create(1, &_id);
     }
 
-    GLResource (GLuint res) {
+    GLResource (GLuint res) :
+        _isBound(false)
+    {
         _id = res;
     }
 
     operator GLuint() const { return _id; }
 
     void bind () {
-        //if (_isBound) return;
+        if (_isBound) return;
         _iface.bind(kind, _id);
+        _isBound = true;
     }
 
     void unbind () {
-        //if (!_isBound) return;
+        if (!_isBound) return;
         _iface.bind(kind, 0);
+        _isBound = false;
+    }
+
+    bool isBound () {
+        return _isBound;
     }
 
     void release () {
@@ -242,6 +252,10 @@ public:
 template <class T>
 using ArrayBuffer = GLBuffer<GL_ARRAY_BUFFER, T>;
 
+template <class T = GLuint>
+using ElementArrayBuffer = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, T>;
+
+
 template <class R, class D>
 void bufferData (R& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
     static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
@@ -276,6 +290,32 @@ void bufferData (GLBuffer<kind, D>& buffer, D*  data, size_t len, GLenum usage =
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 
 class VertexAttribBuilder {
+private:
+    // Private to allow for automatic stride calculation.
+    template <class T, class T2, class ...Ts>
+    VertexAttribBuilder& addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
+        addHelper<T>(res,stride,normalized);
+        addHelper<T2,Ts...>(res,stride,normalized);
+        return *this;
+    }
+
+    template <class T>
+    VertexAttribBuilder& addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
+        GLenum type = traits::GLType<T>::type;
+        size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
+        int components = sizeof(T) / elSize;
+        vao.bind();
+        res.bind();
+        glEnableVertexAttribArray(attribs);
+        glVertexAttribPointer(attribs, components, type, normalized ? GL_TRUE : GL_FALSE, stride, (GLvoid*)offset);
+        res.unbind();
+        vao.unbind();
+        offset += sizeof(T);
+        attribs += 1;
+        sglCatchGLError();
+        return *this;
+    }
+
 public:
     VertexArray& vao;
     uint32_t attribs;
@@ -288,36 +328,35 @@ public:
     {}
 
     template <class T, class T2, class ...Ts>
-    VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res) {
-        add<T>(res);
-        add<T2,Ts...>(res);
-        return *this;
+    VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res, bool normalized = false) {
+        return addHelper<T,T2,Ts...>(res, traits::param_size<T,T2,Ts...>::size, normalized);
     }
 
-    template <class T>
-    VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res) {
-        GLenum type = traits::GLType<T>::type;
-        size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
-        int components = sizeof(T) / elSize;
-        vao.bind();
-        res.bind();
-        glEnableVertexAttribArray(attribs);
-        glVertexAttribPointer(attribs, components, type, GL_FALSE, sizeof(T), (GLvoid*)offset);
-        res.unbind();
-        vao.unbind();
-        offset += sizeof(T);
-        attribs += 1;
-        sglCatchGLError();
-        return *this;
+};
+
+class Framebuffer : public GLResource<GL_FRAMEBUFFER> {
+public:
+    Framebuffer () :
+        GLResource<GL_FRAMEBUFFER>()
+    {}
+
+    template <GLenum kind>
+    traits::IfTex1D<kind> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+        auto bg = bind_guard(*this);
+        glFramebufferTexture1D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
     }
+
+    template <GLenum kind>
+    traits::IfTex2D<kind> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+        auto bg = bind_guard(*this);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
+    }
+
 };
 
 
 
 
-
-using ElementArrayBuffer = GLResource<GL_ELEMENT_ARRAY_BUFFER>;
-using Framebuffer        = GLResource<GL_FRAMEBUFFER>;
 using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
 using QueryBuffer        = GLResource<GL_QUERY_BUFFER>;
 using UniformBuffer      = GLResource<GL_UNIFORM_BUFFER>;
@@ -331,18 +370,5 @@ using SQueryBuffer        = GLSharedResource<GL_QUERY_BUFFER>;
 using SUniformBuffer      = GLSharedResource<GL_UNIFORM_BUFFER>;
 using SUnpackBuffer       = GLSharedResource<GL_PIXEL_UNPACK_BUFFER>;
 using SVertexArray        = GLSharedResource<GL_VERTEX_ARRAY>;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 } // end namespace

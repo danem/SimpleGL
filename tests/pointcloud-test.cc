@@ -39,7 +39,7 @@ int main () {
 
     sgl::VertexArray vao;
     sgl::VertexAttribBuilder(vao)
-        .add<glm::vec3,float>(pcb);
+        .add<glm::vec3, float>(pcb);
     
     sgl::Transform camRotation;
 

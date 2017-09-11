@@ -225,13 +225,13 @@ GLint Shader::setUniformBool (const char * id, bool v){
     return loc;
 }
 
-//GLint Shader::setTexture (std::string id, int target, int handle, int textureUnit) {
-//    int loc = glGetUniformLocation(_id,id.c_str());
-//    glUniform1i(loc, textureUnit);
-//    glActiveTexture(GL_TEXTURE0 + textureUnit);
-//    glBindTexture(target, handle);
-//    return loc;
-//}
+GLint Shader::setTexture (const std::string& id, GLenum target, GLuint handle, int textureUnit){
+    int loc = glGetUniformLocation(_id,id.c_str());
+    glUniform1i(loc, textureUnit);
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(target, handle);
+    return loc;
+}
 //
 //GLint Shader::setTexture (std::string id, Texture * texture, int unit) {
 //    return setTexture(id, texture->getTarget(), texture->getHandle(), unit);

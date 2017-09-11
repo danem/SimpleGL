@@ -11,6 +11,19 @@
 namespace sgl {
 
 namespace traits {
+    template <class ...Ts>
+    struct param_size;
+
+    template <class T, class ...Ts>
+    struct param_size<T,Ts...> {
+        static const size_t size = sizeof(T) + param_size<Ts...>::size;
+    };
+
+    template <class T>
+    struct param_size<T> {
+        static const size_t size = sizeof(T);
+    };
+
     template <bool v>
     struct eval {
         static const bool value = v;

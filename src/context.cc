@@ -1,4 +1,5 @@
 #include <SimpleGL/context.h>
+#include <SimpleGL/utils.h>
 #include <stdexcept>
 
 
@@ -29,6 +30,7 @@ static void __handleMouseInput (GLFWwindow* window, int btn, int action, int mod
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
     int button;
     for (auto handler : state->mouseHandlers) {
+
 
     }
 }
@@ -111,6 +113,9 @@ void Context::initialize () {
     glfwSetCursorEnterCallback(_windowState,__handleMouseEnter);
     glfwSetScrollCallback(_windowState, __handleMouseScroll);
     glfwSetKeyCallback(_windowState, __handleKeyEvent);
+
+    sglClearGLError();
+
 }
 
 void Context::destroy () {

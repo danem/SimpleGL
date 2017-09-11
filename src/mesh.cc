@@ -17,27 +17,16 @@ int MeshBuilder::vertexCount () const {
     return data.indices.size();
 }
 
-MeshResource::MeshResource (const MeshData& data) :
+MeshResource::MeshResource (MeshData& data) :
     size(data.indices.size())
 {
-    this->bind();
+    auto bg = sgl::bind_guard(*this);
 
-    VBO.bind();
-    glBufferData(VBO.type, data.vertices.size() * sizeof(MeshVertex), &data.vertices[0], GL_STATIC_DRAW);
-
-    EBO.bind();
-    glBufferData(EBO.type, data.indices.size() * sizeof(GLuint), &data.indices[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (GLvoid*)0);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (GLvoid*)offsetof(MeshVertex,uvcoord));
-
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (GLvoid*)offsetof(MeshVertex,normal));
-
-    this->unbind();
+    sgl::bufferData(EBO, data.indices);
+    sgl::bufferData(VBO, data.vertices);
+    
+    sgl::VertexAttribBuilder(*this)
+        .add<glm::vec3, glm::vec2, glm::vec3>(VBO);
 }
 
 sgl::MeshResource sgl::createPlane (int divs) {

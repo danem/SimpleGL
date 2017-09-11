@@ -33,13 +33,13 @@ public:
 
 class MeshResource : public GLResource<GL_VERTEX_ARRAY>{
 private:
-    GLResource<GL_ARRAY_BUFFER> VBO;
-    GLResource<GL_ELEMENT_ARRAY_BUFFER> EBO;
+    ArrayBuffer<MeshVertex> VBO;
+    ElementArrayBuffer<> EBO;
 
 public:
     size_t size;
 
-    MeshResource (const MeshData& data);
+    MeshResource (MeshData& data);
 
     void release () {
         GLResource<GL_VERTEX_ARRAY>::release();
@@ -49,7 +49,7 @@ public:
 
 };
 
-MeshResource createPlane (int divs);
+MeshResource createPlane (int divs = 1);
 
 } // end namespace
 #endif

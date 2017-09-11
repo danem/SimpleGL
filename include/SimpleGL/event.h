@@ -18,6 +18,7 @@ const int MOUSE_BTN_LEFT   = 1 << 0;
 const int MOUSE_BTN_RIGHT  = 1 << 1;
 const int MOUSE_BTN_MIDDLE = 1 << 2;
 
+
 struct KeyEvent {
     int eventType;
     int key;
@@ -72,4 +73,4 @@ public:
     virtual void onDragEnd () = 0;
 };
 
-}
+} // end namespace
