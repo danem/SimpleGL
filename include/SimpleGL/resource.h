@@ -1,9 +1,11 @@
 #pragma once
 #include "sglconfig.h"
 #include "traits.h"
+#include "utils.h"
 
 #include <memory>
 #include <iostream>
+#include <vector>
 
 namespace sgl {
 
@@ -80,6 +82,7 @@ template <GLenum kind>
 class GLResource {
 protected:
     const detail::GLInterface<kind> _iface;
+    bool _isBound;
     GLuint _id;
 
 public:
@@ -96,10 +99,12 @@ public:
     operator GLuint() const { return _id; }
 
     void bind () {
+        //if (_isBound) return;
         _iface.bind(kind, _id);
     }
 
     void unbind () {
+        //if (!_isBound) return;
         _iface.bind(kind, 0);
     }
 
@@ -107,6 +112,7 @@ public:
         _iface.destroy(1,&_id);
     }
 };
+
 
 
 template <GLenum kind>
@@ -177,7 +183,6 @@ GLSharedResource<Res::type> shared_resource (V value) {
 }
 
 
-
 namespace detail {
     template <class D, GLenum kind, class T = GLenum>
     class BufferView;
@@ -208,23 +213,115 @@ namespace detail {
         }
 
     };
-}
+} // end namespace
 
 template <class D, class R>
 detail::BufferView<D, R::type> buffer_view (R& res, GLenum access = GL_READ_WRITE) {
     return {res,access};
 }
 
+template <GLenum kind, class T>
+class GLBuffer : public GLResource<kind> {
+public:
+    static_assert(traits::IsBuffer<kind>::value, "Invalid GL Type for buffer");
+    using data_type = T;
+
+    GLBuffer () : GLResource<kind>()
+    {}
+
+    GLBuffer (GLuint res) : GLResource<kind>(res)
+    {}
+
+    GLBuffer (std::vector<T>& data) : GLResource<kind>()
+    {
+        bufferData(*this, data);
+    }
+
+};
+
+template <class T>
+using ArrayBuffer = GLBuffer<GL_ARRAY_BUFFER, T>;
+
+template <class R, class D>
+void bufferData (R& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
+    static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    bufferData(res,&data[0],data.size(),usage);
+}
+
+template <class R, class D, size_t Size>
+void bufferData (R& res, std::array<D,Size>& data, GLenum usage = GL_DYNAMIC_DRAW) {
+    static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    bufferData(res,&data[0],Size,usage);
+}
+
+template <class R, class D>
+void bufferData (R& res, D* data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
+    static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    res.bind();
+    glBufferData(R::type, len * sizeof(D), data, usage);
+}
+
+template <GLenum kind, class D>
+void bufferData (GLBuffer<kind, D>& buffer, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW){
+    bufferData(buffer,&data[0],data.size(),usage);
+}
+
+template <GLenum kind, class D>
+void bufferData (GLBuffer<kind, D>& buffer, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
+    buffer.bind();
+    glBufferData(buffer.type, len * sizeof(D), data, usage);
+}
 
 
-using ArrayBuffer        = GLResource<GL_ARRAY_BUFFER>;
+using VertexArray = GLResource<GL_VERTEX_ARRAY>;
+
+class VertexAttribBuilder {
+public:
+    VertexArray& vao;
+    uint32_t attribs;
+    uint32_t offset;
+
+    VertexAttribBuilder (VertexArray& vao) :
+        vao(vao),
+        attribs(0),
+        offset(0)
+    {}
+
+    template <class T, class T2, class ...Ts>
+    VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res) {
+        add<T>(res);
+        add<T2,Ts...>(res);
+        return *this;
+    }
+
+    template <class T>
+    VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res) {
+        GLenum type = traits::GLType<T>::type;
+        size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
+        int components = sizeof(T) / elSize;
+        vao.bind();
+        res.bind();
+        glEnableVertexAttribArray(attribs);
+        glVertexAttribPointer(attribs, components, type, GL_FALSE, sizeof(T), (GLvoid*)offset);
+        res.unbind();
+        vao.unbind();
+        offset += sizeof(T);
+        attribs += 1;
+        sglCatchGLError();
+        return *this;
+    }
+};
+
+
+
+
+
 using ElementArrayBuffer = GLResource<GL_ELEMENT_ARRAY_BUFFER>;
 using Framebuffer        = GLResource<GL_FRAMEBUFFER>;
 using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
 using QueryBuffer        = GLResource<GL_QUERY_BUFFER>;
 using UniformBuffer      = GLResource<GL_UNIFORM_BUFFER>;
 using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;
-using VertexArray        = GLResource<GL_VERTEX_ARRAY>;
 
 using SArrayBuffer        = GLSharedResource<GL_ARRAY_BUFFER>;
 using SElementArrayBuffer = GLSharedResource<GL_ELEMENT_ARRAY_BUFFER>;

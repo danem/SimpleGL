@@ -37,6 +37,7 @@ if(${SGL_USE_GLM})
 endif()
 
 
+
 set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/SimpleGL.h
     ${INCLUDE_DIR}/SimpleGL/camera.h
@@ -112,4 +113,5 @@ if(${SGL_COMPILE_TESTS})
     test_target(texture-test ${TEST_DIR}/texture-test.cc)
     test_target(traits-test ${TEST_DIR}/traits-test.cc)
     test_target(mouse-test ${TEST_DIR}/mouse-test.cc)
+    test_target(pointcloud-test ${TEST_DIR}/pointcloud-test.cc)
 endif()

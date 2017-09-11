@@ -4,6 +4,10 @@
 #include <array>
 #include <stdint.h>
 
+#ifdef SGL_USE_GLM
+#    include <glm/glm.hpp>
+#endif
+
 namespace sgl {
 
 namespace traits {
@@ -222,7 +226,7 @@ namespace traits {
     using IfShaderProgram = typename std::enable_if<traits::IsShaderProgram<v>::value, GLenum>::type;
 
 
-
+    // C++ Type to GL Type
     template <class T>
     struct GLType {
         const static GLenum type;
@@ -237,6 +241,27 @@ namespace traits {
     template<> struct GLType<int> { const static GLenum type = GL_INT; };
     template<> struct GLType<double> { const static GLenum type = GL_DOUBLE; };
     template<> struct GLType<float> { const static GLenum type = GL_FLOAT; };
+
+#ifdef SGL_USE_GLM  
+    template<> struct GLType<glm::vec2> { const static GLenum type = GL_FLOAT; };
+    template<> struct GLType<glm::vec3> { const static GLenum type = GL_FLOAT; };
+    template<> struct GLType<glm::vec4> { const static GLenum type = GL_FLOAT; };
+    template<> struct GLType<glm::mat3> { const static GLenum type = GL_FLOAT; };
+    template<> struct GLType<glm::mat4> { const static GLenum type = GL_FLOAT; };
+#endif
+
+    // GL Type to C++ type
+    template <GLenum T>
+    struct CType;
+
+    template<> struct CType<GL_UNSIGNED_BYTE> { using type = uint8_t; };
+    template<> struct CType<GL_BYTE> { using type = char; };
+    template<> struct CType<GL_UNSIGNED_SHORT> { using type = uint16_t; };
+    template<> struct CType<GL_SHORT> { using type = short; };
+    template<> struct CType<GL_UNSIGNED_INT> { using type = unsigned int; };
+    template<> struct CType<GL_INT> { using type = int; };
+    template<> struct CType<GL_DOUBLE> { using type = double; };
+    template<> struct CType<GL_FLOAT> { using type = float; };
 
 } // namespace
 } // namespace

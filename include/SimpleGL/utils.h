@@ -4,18 +4,20 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <stdio.h>
 
-#define _sglCatchGLError(ignore) do {\
+#define _sglGetGLError(ignore) do {\
        GLenum err = glGetError();\
        if (err != GL_NO_ERROR) {\
-            const char * msg = sgl::glErrorToString(err);\
+            const char * msg = sgl::util::glErrorToString(err);\
             printf("Error code %d at %s:%d: %s\n", err, __FILE__, __LINE__, msg);\
             if (!ignore) exit(EXIT_FAILURE);\
        }\
    } while (0);
 
-#define sglCatchGLError() _sglCatchGLError(false)
-#define sglCheckGLError() _sglCatchGLError(true)
+#define sglCatchGLError() _sglGetGLError(false)
+#define sglCheckGLError() _sglGetGLError(true)
+#define sglClearGLError() glGetError()
 
 namespace sgl {
 namespace util {

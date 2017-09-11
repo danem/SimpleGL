@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstring>
 #include <stdexcept>
+#include <iostream>
 
 using namespace sgl;
 
