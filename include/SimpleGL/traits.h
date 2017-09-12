@@ -167,15 +167,15 @@ namespace traits {
         GL_SHADER_STORAGE_BUFFER,
         GL_UNIFORM_BUFFER>;
 
-    template <GLenum v>
-    using IfBuffer = typename std::enable_if<traits::IsBuffer<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfBuffer = typename std::enable_if<traits::IsBuffer<v>::value, T>::type;
 
     // TODO: Yes, I know this is invalid...
     template <GLenum v>
     using IsVertexArray = traits::one_of_v<GLenum, v, GL_VERTEX_ARRAY>;
 
-    template <GLenum v>
-    using IfVertexArray = typename std::enable_if<IsVertexArray<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfVertexArray = typename std::enable_if<IsVertexArray<v>::value, T>::type;
 
     template <GLenum v>
     using IsFramebuffer = traits::one_of_v<GLenum, v,
@@ -183,8 +183,8 @@ namespace traits {
         GL_DRAW_FRAMEBUFFER,
         GL_READ_FRAMEBUFFER>;
     
-    template <GLenum v>
-    using IfFramebuffer = typename std::enable_if<traits::IsFramebuffer<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfFramebuffer = typename std::enable_if<traits::IsFramebuffer<v>::value, T>::type;
 
     template <GLenum v>
     using IsTexture = traits::one_of_v<GLenum, v,
@@ -193,50 +193,50 @@ namespace traits {
         GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
         GL_TEXTURE_3D>;
 
-    template <GLenum v>
-    using IfTexture = typename std::enable_if<traits::IsTexture<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfTexture = typename std::enable_if<traits::IsTexture<v>::value, T>::type;
 
     template <GLenum v>
     using IsTex1D = traits::one_of_v<GLenum, v, GL_TEXTURE_1D, GL_PROXY_TEXTURE_1D>;
 
-    template <GLenum v>
-    using IfTex1D = typename std::enable_if<traits::IsTex1D<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfTex1D = typename std::enable_if<traits::IsTex1D<v>::value, T>::type;
 
     template <GLenum v>
     using IsTex2D = traits::one_of_v<GLenum, v, GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_RECTANGLE>;
 
-    template <GLenum v>
-    using IfTex2D = typename std::enable_if<traits::IsTex2D<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfTex2D = typename std::enable_if<traits::IsTex2D<v>::value, T>::type;
     
     template <GLenum V>
     using IsTex2DArray = traits::one_of_v<GLenum, V, GL_TEXTURE_CUBE_MAP>;
 
-    template <GLenum v>
-    using IfTex2DArray = typename std::enable_if<traits::IsTex2DArray<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfTex2DArray = typename std::enable_if<traits::IsTex2DArray<v>::value, T>::type;
 
     template <GLenum V>
     using IsTex3D = traits::one_of_v<GLenum, V, GL_TEXTURE_3D>;
 
-    template <GLenum v>
-    using IfTex3D = typename std::enable_if<traits::IsTex3D<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfTex3D = typename std::enable_if<traits::IsTex3D<v>::value, T>::type;
 
     template <GLenum V>
     using IsWritable = traits::eval<IsBuffer<V>::value || IsTexture<V>::value>;
 
-    template <GLenum v>
-    using IfWritable = typename std::enable_if<traits::IsWritable<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfWritable = typename std::enable_if<traits::IsWritable<v>::value, T>::type;
 
     template <GLenum v>
     using IsMappable = traits::eval<traits::IsBuffer<v>::value>;
 
-    template <GLenum v>
-    using IfMappable = typename std::enable_if<traits::IsMappable<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfMappable = typename std::enable_if<traits::IsMappable<v>::value, T>::type;
 
     template <GLenum v>
     using IsShaderProgram = traits::one_of_v<GLenum, v, GL_PROGRAM>;
 
-    template <GLenum v>
-    using IfShaderProgram = typename std::enable_if<traits::IsShaderProgram<v>::value, GLenum>::type;
+    template <GLenum v, class T = GLenum>
+    using IfShaderProgram = typename std::enable_if<traits::IsShaderProgram<v>::value, T>::type;
 
 
     // C++ Type to GL Type

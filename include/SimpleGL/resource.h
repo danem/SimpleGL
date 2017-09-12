@@ -89,13 +89,15 @@ public:
     static const GLenum type = kind;
 
     GLResource () : 
-        _isBound(false)
+        _isBound(false),
+        _iface()
     {
         _iface.create(1, &_id);
     }
 
     GLResource (GLuint res) :
-        _isBound(false)
+        _isBound(false),
+        _iface()
     {
         _id = res;
     }
@@ -133,7 +135,8 @@ private:
     
 public:
     BindGuard (GLuint res) :
-        _res(res)
+        _res(res),
+        _iface()
     {
         _iface.bind(kind,_res);
     }
@@ -341,17 +344,16 @@ public:
     {}
 
     template <GLenum kind>
-    traits::IfTex1D<kind> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+    traits::IfTex1D<kind,void> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
         auto bg = bind_guard(*this);
         glFramebufferTexture1D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
     }
 
     template <GLenum kind>
-    traits::IfTex2D<kind> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+    traits::IfTex2D<kind,void> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
         auto bg = bind_guard(*this);
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
     }
-
 };
 
 

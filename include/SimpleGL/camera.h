@@ -42,7 +42,7 @@ public:
     float fov   = 45;
     float focus = 10;
 
-    PerspectiveCamera (int w, int h) :
+    PerspectiveCamera (uint32_t w, uint32_t h) :
         CameraBase(),
         width(w), height(h), aspect((float)w/h)
     {

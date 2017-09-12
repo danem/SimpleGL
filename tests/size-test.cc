@@ -11,4 +11,7 @@ int main () {
     std::cout << "sizeof(BindGuard<GL_FRAMEBUFFER>): " << sizeof(sgl::BindGuard<GL_FRAMEBUFFER>) << std::endl;
     std::cout << "sizeof(Shader): " << sizeof(sgl::Shader) << std::endl;
     std::cout << "sizeof(mutex): " << sizeof(std::lock_guard<char>) << std::endl;
+    std::cout << "traits::param_size<float,float,float>::size: " << sgl::traits::param_size<float,float,float>::size << std::endl;
+
+
 }

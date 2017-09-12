@@ -223,6 +223,12 @@ public:
         stbi_image_free(data);
         return tex;
     }
+
+    Texture<kind> build (uint8_t * data, size_t width, size_t height) {
+        detail::GLTextureInfo<kind> info(width, height, this->_info);
+        Texture<kind> tex(data,info);
+        return tex;
+    }
 };
 
 template <GLenum kind>

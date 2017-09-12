@@ -101,7 +101,7 @@ public:
     template <GLenum kind>
     GLint setTexture (const std::string& id, sgl::GLResource<kind>& texture, int unit) {
         static_assert(traits::IsTexture<kind>::value, "Must supply texture target");
-        setTexture(id, kind, (GLuint)texture, unit);
+        return setTexture(id, kind, (GLuint)texture, unit);
     }
 
     GLint setTexture (const std::string& id, GLenum target, GLuint handle, int textureUnit);
