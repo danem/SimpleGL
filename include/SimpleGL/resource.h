@@ -78,6 +78,7 @@ namespace detail {
 } // end namespace
 
 
+// Core resource management class. Only uses 8 bytes compared to GLuint's 4.
 template <GLenum kind>
 class GLResource {
 protected:
@@ -135,6 +136,10 @@ public:
         detail::GLInterface<kind>::bind(kind, _res);
     }
 
+    BindGuard (const BindGuard<kind>& other) :
+        _res(other.res)
+    {}
+
     ~BindGuard () {
         detail::GLInterface<kind>::bind(kind, 0);
     }
@@ -144,7 +149,7 @@ template <GLenum kind>
 BindGuard<kind> bind_guard (GLuint res) { return {res}; }
 
 template <class T>
-BindGuard<T::type> bind_guard (T& res) { return {(GLuint)res}; }
+BindGuard<T::type> bind_guard (T& res) { return {static_cast<GLuint>(res)}; }
 
 template <GLenum kind>
 using GLSharedResource = std::shared_ptr<GLResource<kind>>;
@@ -209,13 +214,22 @@ namespace detail {
         }
 
         ~BufferView () {
-            detail::GLInterface<kind>::bind(kind,_res);
-            glUnmapBuffer(kind);
-            detail::GLInterface<kind>::bind(kind,0);
+            commit();
         }
 
         D& operator[] (size_t idx) {
             return _data[idx];
+        }
+
+        void operator= (const D& value) {
+            _data[0] = value;
+        }
+
+        void commit () {
+            detail::GLInterface<kind>::bind(kind,_res);
+            glUnmapBuffer(kind);
+            detail::GLInterface<kind>::bind(kind,0);
+            _data = nullptr;
         }
 
     };
@@ -238,9 +252,20 @@ public:
     GLBuffer (GLuint res) : GLResource<kind>(res)
     {}
 
-    GLBuffer (std::vector<T>& data) : GLResource<kind>()
+    GLBuffer (std::vector<T>& data, GLenum usage = GL_DYNAMIC_DRAW) : GLResource<kind>()
     {
-        bufferData(*this, data);
+        bufferData(*this, data, usage);
+    }
+
+    template <size_t len>
+    GLBuffer (std::array<T,len>& data, GLenum usage = GL_DYNAMIC_DRAW) : GLResource<kind>()
+    {
+        bufferData(*this, data, usage);
+    }
+
+    GLBuffer (T * data, size_t len, GLenum usage = GL_DYNAMIC_DRAW) : GLResource<kind>()
+    {
+        bufferData(*this, data, len, usage);
     }
 
 };
@@ -251,6 +276,8 @@ using ArrayBuffer = GLBuffer<GL_ARRAY_BUFFER, T>;
 template <class T = GLuint>
 using ElementArrayBuffer = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, T>;
 
+template <class T>
+using UniformBuffer = GLBuffer<GL_UNIFORM_BUFFER, T>;
 
 template <class R, class D>
 void bufferData (R& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
@@ -363,7 +390,6 @@ public:
 using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
 using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;
 using QueryBuffer        = GLResource<GL_QUERY_BUFFER>;
-using UniformBuffer      = GLResource<GL_UNIFORM_BUFFER>;
 
 using SArrayBuffer        = GLSharedResource<GL_ARRAY_BUFFER>;
 using SElementArrayBuffer = GLSharedResource<GL_ELEMENT_ARRAY_BUFFER>;
