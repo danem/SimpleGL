@@ -66,22 +66,22 @@ namespace detail {
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex2D<kind>> {
-        void write (const void* data, const GLTextureInfo<kind>& info) {
+        static void write (const void* data, const GLTextureInfo<kind>& info) {
             glTexImage2D(kind, 0, info.iformat, info.width, info.height, 0, info.format, info.data_type, data);
         }
 
-        void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
+        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
             glTexSubImage2D(kind, 0, x, y, info.width, info.height, info.format, info.data_type, data);
         }
     };
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex3D<kind>> {
-        void write (const void* data, const GLTextureInfo<kind>& info) {
+        static void write (const void* data, const GLTextureInfo<kind>& info) {
             glTexImage3D(kind, 0, info.iformat, info.width, info.height, info.depth, 0, info.format, info.data_type, data);
         }
 
-        void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0, int z = 0) {
+        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0, int z = 0) {
             glTexSubImage3D(kind, 0, x, y, z, info.width, info.height, info.depth, info.format, info.data_type, data);
         }
     };
@@ -143,7 +143,6 @@ namespace detail {
 template <GLenum kind>
 class Texture : public GLResource<kind> {
 private:
-    detail::GLTextureInterface<kind> _texIface;
 
     void applyParams () {
         glTexParameteri(kind, GL_TEXTURE_WRAP_S, attrs.wrap_s);
@@ -161,7 +160,7 @@ public:
         GLResource<kind>()
     {
         this->bind();
-        _texIface.write(nullptr, attrs);
+        detail::GLTextureInterface<kind>::write(nullptr,attrs);
         applyParams();
         this->unbind();
         sglCatchGLError();
@@ -172,7 +171,7 @@ public:
         GLResource<kind>()
     {
         this->bind();
-        _texIface.write(data, attrs);
+        detail::GLTextureInterface<kind>::write(data,attrs);
         applyParams();
         this->unbind();
         sglCatchGLError();

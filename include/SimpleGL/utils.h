@@ -18,6 +18,7 @@
 #define sglCatchGLError() _sglGetGLError(false)
 #define sglCheckGLError() _sglGetGLError(true)
 #define sglClearGLError() glGetError()
+#define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
 
 namespace sgl {
 namespace util {

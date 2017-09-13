@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 
 project(SimpleGL3 CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-add_definitions(-std=c++11)
+set(CMAKE_CXX_STANDARD 11)
 
 set(SGL_USE_GLFW ON CACHE BOOL "Use GLFW as window api")
 set(SGL_USE_GLEW ON CACHE BOOL "Use GLEW")
@@ -42,7 +42,8 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/SimpleGL.h
     ${INCLUDE_DIR}/SimpleGL/camera.h
     ${INCLUDE_DIR}/SimpleGL/context.h
-    ${INCLUDE_DIR}/SimpleGL/format.h
+    ${INCLUDE_DIR}/SimpleGL/contrib/stb_image.h
+    ${INCLUDE_DIR}/SimpleGL/event.h
     ${INCLUDE_DIR}/SimpleGL/mesh.h
     ${INCLUDE_DIR}/SimpleGL/param.h
     ${INCLUDE_DIR}/SimpleGL/resource.h
@@ -92,30 +93,6 @@ add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${INCLUDE_FILES})
 target_link_libraries(${PROJECT_NAME} ${EXTERN_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 
-macro(test_target name filename)
-    add_executable(${name} ${filename})
-    add_definitions(${DEFINITIONS})
-    target_link_libraries(${name} ${PROJECT_NAME})
-    target_include_directories(${name} PRIVATE ${PROJECT_NAME})
-endmacro(test_target)
-
 if(${SGL_COMPILE_TESTS})
-    set(DEFINITIONS ${DEFINITIONS} 
-        -DSGL_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests")
-
-    test_target(context-test ${TEST_DIR}/context-test.cc)
-    test_target(cube-test ${TEST_DIR}/cube-test.cc)
-    test_target(framebuffer-test ${TEST_DIR}/framebuffer-test.cc)
-    test_target(game-of-life ${TEST_DIR}/game-of-life.cc)
-    test_target(key-test ${TEST_DIR}/key-test.cc)
-    test_target(mouse-test ${TEST_DIR}/mouse-test.cc)
-    test_target(param-test ${TEST_DIR}/param-test.cc)
-    test_target(pbo-test ${TEST_DIR}/pbo-test.cc)
-    test_target(plane-test ${TEST_DIR}/plane-test.cc)
-    test_target(pointcloud-test ${TEST_DIR}/pointcloud-test.cc)
-    test_target(resource-test ${TEST_DIR}/resource-test.cc)
-    test_target(shader-test ${TEST_DIR}/shader-test.cc)
-    test_target(size-test ${TEST_DIR}/size-test.cc)
-    test_target(texture-test ${TEST_DIR}/texture-test.cc)
-    test_target(traits-test ${TEST_DIR}/traits-test.cc)
+    add_subdirectory("./tests")
 endif()

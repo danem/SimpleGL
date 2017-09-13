@@ -7,5 +7,5 @@ int main () {
     sgl::Framebuffer framebuffer;
 
     sgl::Shader shader{0};
-    shader.setTexture("foo", framebuffer, 0);
+    //shader.setTexture("foo", framebuffer, 0);
 }

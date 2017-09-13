@@ -127,7 +127,7 @@ public:
         printer(name,value);
     }
 
-    void set (const V& newValue) {
+    void set (const typename std::remove_reference<V>::type& newValue) {
         value = newValue;
         printer(name,value);
     }

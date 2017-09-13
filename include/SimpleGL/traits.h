@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sglconfig.h"
+
 #include <type_traits>
 #include <array>
 #include <stdint.h>

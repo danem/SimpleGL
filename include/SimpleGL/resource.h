@@ -43,37 +43,37 @@ namespace detail {
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfBuffer<kind>> {
-        const GLCreator create  = __glewGenBuffers;
-        const GLDeleter destroy  = __glewDeleteBuffers;
-        const GLBinder bind      = __glewBindBuffer;
+        static void create (int len, GLuint* dest) { __glewGenBuffers(len,dest); }
+        static void destroy (int len, GLuint* dest) { __glewDeleteBuffers(len,dest); }
+        static void bind (GLenum k, GLuint id) { __glewBindBuffer(k,id); }
     };
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfFramebuffer<kind>> {
-        const GLCreator create  = __glewGenFramebuffers;
-        const GLDeleter destroy = __glewDeleteFramebuffers;
-        const GLBinder bind     = __glewBindFramebuffer;
+        static void create (int len, GLuint* dest) { __glewGenFramebuffers(len,dest); }
+        static void destroy (int len, GLuint* dest) { __glewDeleteFramebuffers(len,dest); }
+        static void bind (GLenum k, GLuint id) { __glewBindFramebuffer(k,id); }
     };
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfTexture<kind>> {
-        const GLCreator create  = glGenTextures;
-        const GLDeleter destroy = glDeleteTextures;
-        const GLBinder bind     = glBindTexture;
+        static void create (int len, GLuint* dest) { glGenTextures(len,dest); }
+        static void destroy (int len, GLuint* dest) { glDeleteTextures(len,dest); }
+        static void bind (GLenum k, GLuint id) { glBindTexture(k,id); }
     };
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfVertexArray<kind>> {
-        const GLCreator create  = __glewGenVertexArrays;
-        const GLDeleter destroy = __glewDeleteVertexArrays;
-        const GLBinder bind     = detail::__glBindVertexArray;
+        static void create (int len, GLuint* dest) { __glewGenVertexArrays(len,dest); }
+        static void destroy (int len, GLuint* dest) { __glewDeleteVertexArrays(len,dest); }
+        static void bind (GLenum k, GLuint id) { detail::__glBindVertexArray(k,id); }
     };
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfShaderProgram<kind>> {
-        const GLCreator create = __glCreateProgram;
-        const GLDeleter destroy = __glDeleteProgram;
-        const GLBinder bind = __glUseProgram;
+        static void create (int len, GLuint* dest) { __glCreateProgram(len,dest); }
+        static void destroy (int len, GLuint* dest) { __glDeleteProgram(len,dest); }
+        static void bind (GLenum k, GLuint id) { __glUseProgram(k,id); }
     };
 } // end namespace
 
@@ -81,7 +81,6 @@ namespace detail {
 template <GLenum kind>
 class GLResource {
 protected:
-    const detail::GLInterface<kind> _iface;
     bool _isBound;
     GLuint _id;
 
@@ -89,30 +88,27 @@ public:
     static const GLenum type = kind;
 
     GLResource () : 
-        _isBound(false),
-        _iface()
+        _isBound(false)
     {
-        _iface.create(1, &_id);
+        detail::GLInterface<kind>::create(1, &_id);
     }
 
     GLResource (GLuint res) :
         _isBound(false),
-        _iface()
-    {
-        _id = res;
-    }
+        _id(res)
+    {}
 
     operator GLuint() const { return _id; }
 
     void bind () {
         if (_isBound) return;
-        _iface.bind(kind, _id);
+        detail::GLInterface<kind>::bind(kind, _id);
         _isBound = true;
     }
 
     void unbind () {
         if (!_isBound) return;
-        _iface.bind(kind, 0);
+        detail::GLInterface<kind>::bind(kind, 0);
         _isBound = false;
     }
 
@@ -121,7 +117,7 @@ public:
     }
 
     void release () {
-        _iface.destroy(1,&_id);
+        detail::GLInterface<kind>::destroy(1, &_id);
     }
 };
 
@@ -131,18 +127,16 @@ template <GLenum kind>
 class BindGuard {
 private:
     GLuint _res;
-    const detail::GLInterface<kind> _iface;
     
 public:
     BindGuard (GLuint res) :
-        _res(res),
-        _iface()
+        _res(res)
     {
-        _iface.bind(kind,_res);
+        detail::GLInterface<kind>::bind(kind, _res);
     }
 
     ~BindGuard () {
-        _iface.bind(kind,0);
+        detail::GLInterface<kind>::bind(kind, 0);
     }
 };
 
@@ -203,7 +197,6 @@ namespace detail {
     template <class D, GLenum kind>
     class BufferView<D, kind, traits::IfMappable<kind>>{
     private:
-        const GLInterface<kind> _iface;
         GLuint _res;
         D* _data;
 
@@ -211,14 +204,14 @@ namespace detail {
         BufferView (GLuint res, GLenum access) :
             _res(res)
         {
-            _iface.bind(kind,_res);
+            detail::GLInterface<kind>::bind(kind,_res);
             _data = static_cast<D*>(glMapBuffer(kind, access));
         }
 
         ~BufferView () {
-            _iface.bind(kind,_res);
+            detail::GLInterface<kind>::bind(kind,_res);
             glUnmapBuffer(kind);
-            _iface.bind(kind,0);
+            detail::GLInterface<kind>::bind(kind,0);
         }
 
         D& operator[] (size_t idx) {
@@ -293,48 +286,56 @@ void bufferData (GLBuffer<kind, D>& buffer, D*  data, size_t len, GLenum usage =
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 
 class VertexAttribBuilder {
-private:
-    // Private to allow for automatic stride calculation.
-    template <class T, class T2, class ...Ts>
-    VertexAttribBuilder& addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
-        addHelper<T>(res,stride,normalized);
-        addHelper<T2,Ts...>(res,stride,normalized);
-        return *this;
-    }
-
-    template <class T>
-    VertexAttribBuilder& addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
-        GLenum type = traits::GLType<T>::type;
-        size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
-        int components = sizeof(T) / elSize;
-        vao.bind();
-        res.bind();
-        glEnableVertexAttribArray(attribs);
-        glVertexAttribPointer(attribs, components, type, normalized ? GL_TRUE : GL_FALSE, stride, (GLvoid*)offset);
-        res.unbind();
-        vao.unbind();
-        offset += sizeof(T);
-        attribs += 1;
-        sglCatchGLError();
-        return *this;
-    }
 
 public:
     VertexArray& vao;
     uint32_t attribs;
-    uint32_t offset;
+    uint32_t buffers;
+    uint64_t offset;
 
-    VertexAttribBuilder (VertexArray& vao) :
+    VertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0, uint32_t buffers = 0) :
         vao(vao),
-        attribs(0),
+        attribs(attribs),
+        buffers(buffers),
         offset(0)
     {}
 
-    template <class T, class T2, class ...Ts>
+    template <class T, class ...Ts>
     VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res, bool normalized = false) {
-        return addHelper<T,T2,Ts...>(res, traits::param_size<T,T2,Ts...>::size, normalized);
+        addHelper<T,Ts...>(res, traits::param_size<T,Ts...>::size, normalized);
+        buffers += 1;
+        return *this;
     }
 
+    template <class D, class T = D, class ...Ts>
+    VertexAttribBuilder& add (ArrayBuffer<D>& res, bool normalized = false) {
+        addHelper<T,Ts...>(res, traits::param_size<T,Ts...>::size, normalized);
+        buffers += 1;
+        return *this;
+    }
+
+private:
+    // Private to allow for automatic stride calculation.
+    template <class T, class T2, class ...Ts>
+    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
+        addHelper<T>(res,stride,normalized);
+        addHelper<T2,Ts...>(res,stride,normalized);
+    }
+
+    template <class T>
+    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
+        GLenum type = traits::GLType<T>::type;
+        size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
+        int components = sizeof(T) / elSize;
+        auto bg1 = bind_guard(vao);
+        auto bg2 = bind_guard(res);
+        glEnableVertexAttribArray(attribs);
+        glVertexAttribPointer(attribs, components, type, SGL_BOOL(normalized), stride, (GLvoid*)offset);
+        glVertexAttribDivisor(attribs, buffers);
+        offset += sizeof(T);
+        attribs += 1;
+        sglCatchGLError();
+    }
 };
 
 class Framebuffer : public GLResource<GL_FRAMEBUFFER> {
@@ -360,9 +361,9 @@ public:
 
 
 using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
+using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;
 using QueryBuffer        = GLResource<GL_QUERY_BUFFER>;
 using UniformBuffer      = GLResource<GL_UNIFORM_BUFFER>;
-using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;
 
 using SArrayBuffer        = GLSharedResource<GL_ARRAY_BUFFER>;
 using SElementArrayBuffer = GLSharedResource<GL_ELEMENT_ARRAY_BUFFER>;

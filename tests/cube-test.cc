@@ -5,7 +5,7 @@ int main () {
     sgl::Context ctx{500,500,"cube test"};
 
     sgl::Shader shader = sgl::loadShader(TEST_RES("vs.glsl"), TEST_RES("fs.glsl"));
-    sgl::MeshResource mesh = sgl::createCube();
+    sgl::MeshResource mesh = sgl::createPlane();
 
     sgl::PerspectiveCamera cam{ctx.attrs.width, ctx.attrs.height};
     cam.position = {0,0,-3};
