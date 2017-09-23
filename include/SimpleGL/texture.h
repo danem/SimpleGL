@@ -3,6 +3,7 @@
 #include "sglconfig.h"
 #include "resource.h"
 #include "utils.h"
+#include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "contrib/stb_image.h"
@@ -31,6 +32,7 @@ namespace detail {
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w) : width(w), GLTextureInfoBase() {}
         GLTextureInfo (int w, GLTextureInfoBase& info) : width(w), GLTextureInfoBase(info) {}
+        size_t size () const { return width * sgl::traits::formatSize(iformat); }
     };
 
     template <GLenum kind>
@@ -39,6 +41,7 @@ namespace detail {
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w, int h) : width(w), height(h), GLTextureInfoBase() {}
         GLTextureInfo (int w, int h, GLTextureInfoBase& info) : width(w), height(h), GLTextureInfoBase(info) {}
+        size_t size () const { return width * height * sgl::traits::formatSize(iformat); }
     };
 
     template <GLenum kind>
@@ -47,6 +50,7 @@ namespace detail {
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w, int h, int d) : width(w), height(h), depth(d), GLTextureInfoBase() {}
         GLTextureInfo (int w, int h, int d, GLTextureInfoBase& info) : width(w), height(h), depth(d), GLTextureInfoBase(info) {}
+        size_t size () const { return width * height * depth * sgl::traits::formatSize(iformat); }
     };
 
     template <GLenum kind, class T = GLenum>
@@ -60,7 +64,7 @@ namespace detail {
         }
         
         static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0) {
-            glTexSubImage1D(kind, info.iformat, x, info.width, 0, info.format, info.data_type, data);
+            glTexSubImage1D(kind, 0, x, info.width, info.format, info.data_type, data);
         }
     };
 
@@ -252,5 +256,40 @@ using Texture1DBuilder = TextureBuilder<GL_TEXTURE_1D>;
 using Texture2DBuilder = TextureBuilder<GL_TEXTURE_2D>;
 using Texture3DBuilder = TextureBuilder<GL_TEXTURE_3D>;
 
+template <GLenum kind>
+void updateTexture (Texture<kind>& tex, const void * data) {
+    printf("hello\n");
+    auto bg = sgl::bind_guard(tex);
+    detail::GLTextureInterface<kind>::update(data, tex.attrs);
+    sglDbgCatchGLError();
+}
+
+template <GLenum kind>
+void updateTexture (Texture<kind>& tex, const void * data, int x) {
+    printf("hello2\n");
+    static_assert(traits::IsTex1D<kind>::value, "Texture must be 1D");
+    auto bg = sgl::bind_guard(tex);
+    detail::GLTextureInterface<kind>::update(data, tex.attrs, x);
+    sglDbgCatchGLError();
+}
+
+template <GLenum kind>
+void updateTexture (Texture<kind>& tex, const void * data, int x, int y) {
+    static_assert(traits::IsTex2D<kind>::value, "Texture must be 2D");
+    printf("hello3\n");
+    auto bg = sgl::bind_guard(tex);
+    detail::GLTextureInterface<kind>::update(data, tex.attrs, x, y);
+    sglDbgCatchGLError();
+}
+
+template <GLenum kind>
+void updateTexture (Texture<kind>& tex, const void * data, int x, int y, int z) {
+    static_assert(traits::IsTex3D<kind>::value, "Texture must be 3D");
+    printf("hello4\n");
+    auto bg = sgl::bind_guard(tex);
+    detail::GLTextureInterface<kind>::update(data, tex.attrs, x, y, z);
+    sglDbgCatchGLError();
+
+}
 
 } // end namespace

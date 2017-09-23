@@ -4,6 +4,7 @@
 #include "sglconfig.h"
 #include "traits.h"
 #include "resource.h"
+#include "resource-helpers.h"
 
 #include <iostream>
 #include <string>

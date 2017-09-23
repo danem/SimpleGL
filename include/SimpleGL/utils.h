@@ -20,6 +20,12 @@
 #define sglClearGLError() glGetError()
 #define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
 
+#ifdef SGL_DEBUG
+#    define sglDbgCatchGLError() _sglGetGLError(false)
+#else
+#    define sglDbgCatchGLError()
+#endif
+
 namespace sgl {
 namespace util {
 

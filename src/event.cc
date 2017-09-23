@@ -32,5 +32,5 @@ void MouseDraggerBase::operator() (const MouseEvent& event) {
 }
 
 bool MouseEvent::usesButton (int btn) const {
-    return button & btn == btn;
+    return (button & btn) == btn;
 }

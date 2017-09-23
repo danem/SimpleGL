@@ -75,6 +75,15 @@ namespace detail {
         static void destroy (int len, GLuint* dest) { __glDeleteProgram(len,dest); }
         static void bind (GLenum k, GLuint id) { __glUseProgram(k,id); }
     };
+
+    template <GLenum kind, class T = GLenum>
+    struct GLUpdateableInterface;
+
+    template <GLenum kind>
+    struct GLUpdateableInterface<kind, traits::IfBuffer<kind>> {
+        static void write (size_t len, char * data, GLenum mode) { glBufferData(kind, len, data, mode); }
+        static void update (size_t len, char * data, GLenum mode) { glBufferData(kind, len, data, mode); }
+    };
 } // end namespace
 
 
@@ -122,13 +131,44 @@ public:
     }
 };
 
+template <GLenum kind>
+class GLResourceArray {
+private:
+    size_t _size;
+    GLuint * _ids;
 
+public:
+
+    GLResourceArray (size_t size) :
+        _size(size)
+    {
+        _ids = new GLuint[size]();
+        detail::GLInterface<kind>::create(_size,_ids);
+    }
+
+    void release () {
+        detail::GLInterface<kind>::destroy(_size,_ids);
+        delete _ids;
+    }
+
+    GLResource<kind> operator[] (size_t idx) {
+        return {_ids[idx]};
+    }
+
+    void bind (size_t idx) {
+        detail::GLInterface<kind>::bind(kind, _ids[idx]);
+    }
+
+    void ubind (size_t idx) {
+        detail::GLInterface<kind>::bind(kind, 0);
+    }
+};
 
 template <GLenum kind>
 class BindGuard {
 private:
     GLuint _res;
-    
+
 public:
     BindGuard (GLuint res) :
         _res(res)
@@ -136,9 +176,11 @@ public:
         detail::GLInterface<kind>::bind(kind, _res);
     }
 
+    /*
     BindGuard (const BindGuard<kind>& other) :
-        _res(other.res)
+        _res(other._res)
     {}
+    */
 
     ~BindGuard () {
         detail::GLInterface<kind>::bind(kind, 0);
@@ -151,29 +193,30 @@ BindGuard<kind> bind_guard (GLuint res) { return {res}; }
 template <class T>
 BindGuard<T::type> bind_guard (T& res) { return {static_cast<GLuint>(res)}; }
 
+
 template <GLenum kind>
 using GLSharedResource = std::shared_ptr<GLResource<kind>>;
 
 template <GLenum kind>
 GLSharedResource<kind> shared_resource () {
-    return {new GLResource<kind>(), [](GLResource<kind>* r){ 
-        r->release(); 
+    return {new GLResource<kind>(), [](GLResource<kind>* r){
+        r->release();
         delete r;
     }};
 }
 
 template <GLenum kind>
 GLSharedResource<kind> shared_resource (GLResource<kind>& res) {
-    return {&res, [](GLResource<kind>* r){ 
-        r->release(); 
+    return {&res, [](GLResource<kind>* r){
+        r->release();
         delete r;
     }};
 }
 
 template <GLenum kind>
 GLSharedResource<kind> shared_resource (GLuint res) {
-    return {new GLResource<kind>(res), [](GLResource<kind>* r){ 
-        r->release(); 
+    return {new GLResource<kind>(res), [](GLResource<kind>* r){
+        r->release();
         delete r;
     }};
 }
@@ -193,6 +236,8 @@ GLSharedResource<Res::type> shared_resource (V value) {
         delete r;
     }};
 }
+
+
 
 
 namespace detail {
@@ -225,11 +270,18 @@ namespace detail {
             _data[0] = value;
         }
 
+        void write (const D* values, size_t count) {
+            for (size_t i = 0; i < count; i++){
+                _data[i] = values[i];
+            }
+        }
+
         void commit () {
             detail::GLInterface<kind>::bind(kind,_res);
             glUnmapBuffer(kind);
             detail::GLInterface<kind>::bind(kind,0);
             _data = nullptr;
+            sglDbgCatchGLError();
         }
 
     };
@@ -237,6 +289,11 @@ namespace detail {
 
 template <class D, class R>
 detail::BufferView<D, R::type> buffer_view (R& res, GLenum access = GL_READ_WRITE) {
+    return {res,access};
+}
+
+template <class D, class R>
+detail::BufferView<D, R::type> buffer_view (R&& res, GLenum access = GL_READ_WRITE) {
     return {res,access};
 }
 
@@ -280,33 +337,45 @@ template <class T>
 using UniformBuffer = GLBuffer<GL_UNIFORM_BUFFER, T>;
 
 template <class R, class D>
-void bufferData (R& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
+void bufferData (R&& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
     static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    auto bg = sgl::bind_guard(res);
     bufferData(res,&data[0],data.size(),usage);
 }
 
 template <class R, class D, size_t Size>
-void bufferData (R& res, std::array<D,Size>& data, GLenum usage = GL_DYNAMIC_DRAW) {
+void bufferData (R&& res, std::array<D,Size>& data, GLenum usage = GL_DYNAMIC_DRAW) {
     static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    auto bg = sgl::bind_guard(res);
     bufferData(res,&data[0],Size,usage);
 }
 
 template <class R, class D>
-void bufferData (R& res, D* data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
+void bufferData (R&& res, D* data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
     static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
-    res.bind();
+    auto bg = sgl::bind_guard(res);
     glBufferData(R::type, len * sizeof(D), data, usage);
 }
 
 template <GLenum kind, class D>
 void bufferData (GLBuffer<kind, D>& buffer, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW){
+    auto bg = sgl::bind_guard(buffer);
     bufferData(buffer,&data[0],data.size(),usage);
 }
 
 template <GLenum kind, class D>
 void bufferData (GLBuffer<kind, D>& buffer, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
-    buffer.bind();
+    auto bg = sgl::bind_guard(buffer);
     glBufferData(buffer.type, len * sizeof(D), data, usage);
+}
+
+
+template <GLenum kind, class D>
+void bufferData (GLuint res, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
+    static_assert(traits::IsBuffer<kind>::value, "GLResource target must be buffer");
+    detail::GLInterface<kind>::bind(res);
+    glBufferData(kind, len * sizeof(D), data, usage);
+    detail::GLInterface<kind>::bind(0);
 }
 
 

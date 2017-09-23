@@ -9,7 +9,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(SGL_USE_GLFW ON CACHE BOOL "Use GLFW as window api")
 set(SGL_USE_GLEW ON CACHE BOOL "Use GLEW")
 set(SGL_USE_GLM ON CACHE BOOL "Use GLM")
-set(SGL_COMPILE_TESTS OFF CACHE BOOL "Make test projects")
+set(SGL_COMPILE_TESTS ON CACHE BOOL "Make test projects")
+set(SGL_DEBUG OFF CACHE BOOL "SGL Debug Mode")
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -36,6 +37,10 @@ if(${SGL_USE_GLM})
     set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLM=1)
 endif()
 
+if(${SGL_DEBUG})
+    set(DEFINITIONS ${DEFINITIONS} -DSGL_DEBUG=1)
+endif()
+
 
 
 set(INCLUDE_FILES
@@ -46,7 +51,9 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/event.h
     ${INCLUDE_DIR}/SimpleGL/mesh.h
     ${INCLUDE_DIR}/SimpleGL/param.h
+    ${INCLUDE_DIR}/SimpleGL/pbo.h
     ${INCLUDE_DIR}/SimpleGL/resource.h
+    ${INCLUDE_DIR}/SimpleGL/resource-helpers.h
     ${INCLUDE_DIR}/SimpleGL/sglconfig.h
     ${INCLUDE_DIR}/SimpleGL/shader.h
     ${INCLUDE_DIR}/SimpleGL/texture.h
@@ -62,6 +69,7 @@ set(SOURCE_FILES
     ${SOURCE_DIR}/event.cc
     ${SOURCE_DIR}/mesh.cc
     ${SOURCE_DIR}/shader.cc
+    ${SOURCE_DIR}/traits.cc
     ${SOURCE_DIR}/transform.cc
     ${SOURCE_DIR}/utils.cc
 )

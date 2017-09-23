@@ -278,6 +278,70 @@ namespace traits {
     template<> struct CType<GL_DOUBLE> { using type = double; };
     template<> struct CType<GL_FLOAT> { using type = float; };
 
+
+    // TODO: There doesn't seem to be a way to handle this at both compile time and runtime in C++11
+    template <GLenum kind>
+    struct Format;
+
+    template <> struct Format<GL_R8>             { const static size_t byte_count = 1; };
+    template <> struct Format<GL_R8_SNORM>       { const static size_t byte_count = 1; };
+    template <> struct Format<GL_R16F>           { const static size_t byte_count = 2; };
+    template <> struct Format<GL_R32F>           { const static size_t byte_count = 4; };
+    template <> struct Format<GL_R8UI>           { const static size_t byte_count = 1; };
+    template <> struct Format<GL_R8I>            { const static size_t byte_count = 1; };
+    template <> struct Format<GL_R16UI>          { const static size_t byte_count = 2; };
+    template <> struct Format<GL_R16I>           { const static size_t byte_count = 2; };
+    template <> struct Format<GL_R32UI>          { const static size_t byte_count = 4; };
+    template <> struct Format<GL_R32I>           { const static size_t byte_count = 4; };
+
+    template <> struct Format<GL_RG8>            { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RG8_SNORM>      { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RG16F>          { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RG32F>          { const static size_t byte_count = 8; };
+    template <> struct Format<GL_RG8UI>          { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RG8I>           { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RG16UI>         { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RG16I>          { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RG32UI>         { const static size_t byte_count = 8; };
+    template <> struct Format<GL_RG32I>          { const static size_t byte_count = 8; };
+
+    template <> struct Format<GL_RGB8>           { const static size_t byte_count = 3; };
+    template <> struct Format<GL_SRGB8>          { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RGB565>         { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RGB8_SNORM>     { const static size_t byte_count = 2; };
+    template <> struct Format<GL_R11F_G11F_B10F> { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGB9_E5>        { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGB16F>         { const static size_t byte_count = 6; };
+    template <> struct Format<GL_RGB32F>         { const static size_t byte_count = 12; };
+    template <> struct Format<GL_RGB8UI>         { const static size_t byte_count = 3; };
+    template <> struct Format<GL_RGB8I>          { const static size_t byte_count = 3; };
+    template <> struct Format<GL_RGB16UI>        { const static size_t byte_count = 6; };
+    template <> struct Format<GL_RGB16I>         { const static size_t byte_count = 6; };
+    template <> struct Format<GL_RGB32UI>        { const static size_t byte_count = 12; };
+    template <> struct Format<GL_RGB32I>         { const static size_t byte_count = 12; };
+
+    template <> struct Format<GL_RGBA8>          { const static size_t byte_count = 4; };
+    template <> struct Format<GL_SRGB8_ALPHA8>   { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGBA8_SNORM>    { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGB5_A1>        { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RGBA4>          { const static size_t byte_count = 2; };
+    template <> struct Format<GL_RGB10_A2>       { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGBA16F>        { const static size_t byte_count = 8; };
+    template <> struct Format<GL_RGBA32F>        { const static size_t byte_count = 16; };
+    template <> struct Format<GL_RGBA8UI>        { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGBA8I>         { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGB10_A2UI>     { const static size_t byte_count = 4; };
+    template <> struct Format<GL_RGBA16UI>       { const static size_t byte_count = 8; };
+    template <> struct Format<GL_RGBA16I>        { const static size_t byte_count = 8; };
+    template <> struct Format<GL_RGBA32UI>       { const static size_t byte_count = 16; };
+    template <> struct Format<GL_RGBA32I>        { const static size_t byte_count = 16; };
+
+    template <> struct Format<GL_LUMINANCE>      { const static size_t byte_count = 1; };
+    template <> struct Format<GL_LUMINANCE_ALPHA>{ const static size_t byte_count = 1; };
+
+    // Needed to support runtime in C++11. With C++14 we could reduce these both to a constexpr
+    size_t formatSize (GLenum fmt);
+
 } // namespace
 } // namespace
 
