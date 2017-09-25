@@ -24,7 +24,8 @@ int main () {
         auto pg = sgl::bind_guard(plane);
         glDrawElements(GL_TRIANGLES, plane.size, GL_UNSIGNED_INT, 0);
 
-        sglCatchGLError();
+        //sglCatchGLError();
+        sglCheckGLError();
         ctx.swapBuffers();
     }
 }
