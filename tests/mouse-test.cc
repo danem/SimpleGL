@@ -1,4 +1,5 @@
 #include <SimpleGL/SimpleGL.h>
+#include "sgl-test.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/type_trait.hpp>
@@ -9,22 +10,23 @@
 
 template <class T>
 void VecPrinter (const char * name, const T& value){
-    size_t len = T::length();
+    int len = T::length();
     std::cout << name << ": {";
     for (int i = 0; i < len; i++){
         std::cout << value[i];
         if (i < len - 1) std::cout << ", ";
     }
-    std::cout << "}\n";
+    std::cout << "}" << std::endl;
 }
 
 class MouseDragger : public sgl::MouseDraggerBase {
 public:
+
     sgl::Param<glm::vec2> mp;
 
     MouseDragger () :
-        mp("mouse", VecPrinter),
-        sgl::MouseDraggerBase()
+        sgl::MouseDraggerBase(),
+        mp("mouse", VecPrinter)
     {}
 
     void onDragStart () override {}
@@ -37,8 +39,11 @@ public:
 
 int main () {
     sgl::Context ctx{500,500,"mouse test"};
+
     MouseDragger md;
     ctx.addMouseHandler(md);
+
+    sgl::MeshResource renderQuad = sgl::createPlane();
 
     glViewport(0,0,ctx.attrs.width, ctx.attrs.height);
     while (ctx.isAlive()){

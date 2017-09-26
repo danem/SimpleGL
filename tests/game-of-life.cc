@@ -115,10 +115,10 @@ int main () {
             texData[(y * width + x) * 3] = 255;
         }
 
-        sgl::Texture2D texA = sgl::Texture2DBuilder()
+        sgl::Texture2D texA = sgl::TextureBuilder2D()
             .build(width,height);
 
-        sgl::Texture2D texB = sgl::Texture2DBuilder()
+        sgl::Texture2D texB = sgl::TextureBuilder2D()
             .build(&texData[0], width, height);
 
         Slab slab(texA,texB);

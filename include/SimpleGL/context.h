@@ -17,6 +17,7 @@ namespace detail {
 
     struct UserState {
         bool isMouseOverWindow;
+        double xpos, ypos;
         std::vector<sgl::KeyHandler> keyHandlers;
         std::vector<sgl::MouseHandler> mouseHandlers;
     };

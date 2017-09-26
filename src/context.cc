@@ -7,12 +7,6 @@ using namespace sgl;
 
 #define GLBOOL(v) ((v) ? GL_TRUE : GL_FALSE)
 
-static int glfwKeyActionToSGLAction (int action) {
-    if (action == GLFW_PRESS) return KEY_PRESS;
-    else if (action == GLFW_RELEASE) return KEY_RELEASE;
-    else return KEY_REPEAT;
-}
-
 static int getGLProfile (GLProfile profile) {
     if (profile == GLProfile::CORE) return GLFW_OPENGL_CORE_PROFILE;
     else if (profile == GLProfile::COMPAT) return GLFW_OPENGL_COMPAT_PROFILE;
@@ -21,8 +15,10 @@ static int getGLProfile (GLProfile profile) {
 
 static void __handleMouseMove (GLFWwindow* window, double xp, double yp){
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
+    state->xpos = xp;
+    state->ypos = yp;
     for (auto& handler : state->mouseHandlers) {
-        handler({MOUSE_MOVE, xp, yp, MOUSE_BTN_NONE, state->isMouseOverWindow});
+        handler({MOVE, xp, yp, MOUSE_BTN_NONE, state->isMouseOverWindow});
     }
 }
 
@@ -30,8 +26,7 @@ static void __handleMouseInput (GLFWwindow* window, int btn, int action, int mod
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
     int button;
     for (auto& handler : state->mouseHandlers) {
-
-
+        handler({action, state->xpos, state->ypos, btn, state->isMouseOverWindow});
     }
 }
 
@@ -46,15 +41,14 @@ static void __handleMouseEnter (GLFWwindow* window, int entered){
 static void __handleMouseScroll (GLFWwindow* window, double xoff, double yoff) {
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
     for (auto& handler : state->mouseHandlers) {
-        handler({MOUSE_SCROLL, xoff, yoff, MOUSE_BTN_NONE, state->isMouseOverWindow});
+        handler({SCROLL, xoff, yoff, MOUSE_BTN_NONE, state->isMouseOverWindow});
     }
 }
 
 static void __handleKeyEvent (GLFWwindow* window, int key, int scancode, int action, int mods){ 
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
-    int type = glfwKeyActionToSGLAction(action);
     for (auto& handler : state->keyHandlers) {
-        handler({type, key, false, false, false});
+        handler({action, key, false, false, false});
     }
 }
 
