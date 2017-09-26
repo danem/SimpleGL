@@ -172,7 +172,7 @@ namespace traits {
     template <GLenum v, class T = GLenum>
     using IfBuffer = typename std::enable_if<traits::IsBuffer<v>::value, T>::type;
 
-    // TODO: Yes, I know this is invalid...
+    // TODO: Yes, I know GL_VERTEX_ARRAY is used for older versions of OpenGL
     template <GLenum v>
     using IsVertexArray = traits::one_of_v<GLenum, v, GL_VERTEX_ARRAY>;
 

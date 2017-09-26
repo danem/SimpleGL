@@ -144,6 +144,9 @@ namespace detail {
     };
 } // end namespace
 
+/**
+* Texture provides a wrapper over an opengl texture object.
+*/
 template <GLenum kind>
 class Texture : public GLResource<kind> {
 private:
@@ -182,6 +185,28 @@ public:
     }
 };
 
+
+/**
+* TextureBuilder provides a convenient, typesafe way of
+* creating opengl texture objects.
+*
+* example:
+*
+*   sgl::Texture1D tex1d = sgl::TextureBuilder<GL_TEXTURE_1D>()
+*       .format(GL_R, GL_R8)
+*       .build(1000);
+*
+*   sgl::Texture2D tex2d = sgl::TextureBuilder2D()
+*       .build("image.png");
+*
+*   sgl::Texture2D tex2d2 = sgl::TextureBuilder2D()
+*       .build(pixels, 500, 500);
+*
+*   sgl::Texture<GL_TEXTURE_3D> tex3d = sgl::TextureBuilder3D()
+*       .wrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE)
+*       .build(500,500,500);
+*
+*/
 
 template <GLenum kind, class T = GLenum>
 class TextureBuilder;
@@ -260,9 +285,9 @@ using MTexture2D       = MTexture<GL_TEXTURE_2D>;
 using Texture3D        = Texture<GL_TEXTURE_3D>;
 using MTexture3D       = MTexture<GL_TEXTURE_3D>;
 
-using Texture1DBuilder = TextureBuilder<GL_TEXTURE_1D>;
-using Texture2DBuilder = TextureBuilder<GL_TEXTURE_2D>;
-using Texture3DBuilder = TextureBuilder<GL_TEXTURE_3D>;
+using TextureBuilder1D = TextureBuilder<GL_TEXTURE_1D>;
+using TextureBuilder2D = TextureBuilder<GL_TEXTURE_2D>;
+using TextureBuilder3D = TextureBuilder<GL_TEXTURE_3D>;
 
 template <GLenum kind>
 void updateTexture (Texture<kind>& tex, const void * data) {

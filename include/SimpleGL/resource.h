@@ -181,17 +181,17 @@ public:
     {}
 
     ~GLResourceM () {
-        sglDgbLog("freeing resource {kind: %d, id: %d}\n", T::type, static_cast<GLuint>(_res));
         _res.release();
     }
+
+    T* operator-> () { return &_res; }
 
     operator T&() const { return _res; }
     operator GLuint() const { return static_cast<GLuint>(_res); }
 
+
     T& get () const { return _res; }
 };
-
-
 
 template <GLenum kind>
 class BindGuard {
@@ -285,6 +285,8 @@ GLSharedResource<Res::type> shared_resource (V value) {
 
 
 namespace detail {
+    // BufferView abstracts over a mapped buffer, allowing for safe and
+    // convenient access. Using RAII it guarantees unmapping.
     template <class D, GLenum kind, class T = GLenum>
     class BufferView;
 
@@ -451,6 +453,21 @@ void bufferData (GLuint res, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRA
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 using MVertexArray = GLResourceM<VertexArray>;
 
+// VertexAttribBuilder is a helper class that simplifies the
+// initialization of Vertex Arrays. At compile time, it computes
+// the correct GL types, offsets, strides, and sizes to correctly
+// access a buffer in GLSL.
+//
+// eg:
+// The following code creates a VertexArray and creates three attributes
+//
+//     struct Vertex { float fields[5]; };
+//     sgl::ArrayBuffer<Vertex> verts;
+//     sgl::VertexArray vao;
+//     sgl::vertexAttribBuilder(vao)
+//         .add<float[3], float, float>(verts);
+//
+
 class VertexAttribBuilder {
 
 public:
@@ -505,6 +522,11 @@ private:
     }
 };
 
+inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0, uint32_t buffers = 0){
+    return {vao,attribs,buffers};
+}
+
+// Thin wrapper around GL_FRAMEBUFFER. Provides functionality for attaching textures.
 class Framebuffer : public GLResource<GL_FRAMEBUFFER> {
 public:
     Framebuffer () :

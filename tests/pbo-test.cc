@@ -11,7 +11,7 @@ int main () {
     std::array<char,500*500*3> data;
     sgl::Shader shader = sgl::loadShader(TEST_RES("ident_vs.glsl"), TEST_RES("texture_fs.glsl"));
 
-    sgl::Texture2D tex = sgl::Texture2DBuilder()
+    sgl::Texture2D tex = sgl::TextureBuilder2D()
         .build(ctx.attrs.width, ctx.attrs.height);
 
     sgl::PBOUploader uploader(tex);

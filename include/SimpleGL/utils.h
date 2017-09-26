@@ -20,12 +20,27 @@
 #define sglClearGLError() glGetError()
 #define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
 
+
 #ifdef SGL_DEBUG
 #    define sglDbgCatchGLError() _sglGetGLError(false)
 #    define sglDgbLog(...) do { printf(__VA_ARGS__); } while(0);
 #else
 #    define sglDbgCatchGLError()
 #    define sglDgbLog(...)
+#endif
+
+#if SGL_DEBUG >= 2
+#    define sglDgbLogVerbose(...) sglDbgLog(__VA_ARGS__)
+#    define sglDgbLogWarn(...) sglDgbLog(__VA_ARGS__)
+#    define sglDbgLogInfo(...) sglDbgLog(__VA_ARGS__)
+#elif SGL_DEBUG >= 1
+#    define sglDgbLogVerbose(...)
+#    define sglDgbLogWarn(...) sglDgbLog(__VA_ARGS__)
+#    define sglDbgLogInfo(...) sglDbgLog(__VA_ARGS__)
+#else
+#    define sglDgbLogVerbose(...)
+#    define sglDgbLogWarn(...)
+#    define sglDbgLogInfo(...)
 #endif
 
 namespace sgl {

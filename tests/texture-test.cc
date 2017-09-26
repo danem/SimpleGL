@@ -5,7 +5,7 @@
 int main () {
     sgl::Context ctx{700, 700, "texture test"};
 
-    sgl::Texture2D image = sgl::Texture2DBuilder()
+    sgl::Texture2D image = sgl::TextureBuilder2D()
         .build(TEST_RES("blue.jpg"));
 
     sgl::MeshResource plane = sgl::createPlane();

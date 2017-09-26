@@ -16,14 +16,18 @@ or used with other OpenGL libraries and frameworks.
         std::vector<glm::vec2> offsets;
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++){
-                offsets.emplace_back(i/10.f, j/10.f);
+                offsets.emplace_back(i/10.f, j/10.f, i/j);
             }
         }
-        sgl::ArrayBuffer<glm::vec2> offsetsBuf{offsets};
+
+        sgl::ArrayBuffer<glm::vec3> offsetsBuf{offsets};
         sgl::MeshResource mesh = sgl::createPlane();
 
-        sgl::VertexAttribBuilder(mesh,3,1)
+        sgl::vertexAttribBuilder(mesh,3,1)
             .add(offsetsBuf);
+
+        sgl::Texture2D texture = sgl::TextureBuilder2D()
+            .build("image.png");
 
         glViewport(0, 0, ctx.attrs.width, ctx.attrs.height);
         while (ctx.isAlive()){
@@ -31,6 +35,8 @@ or used with other OpenGL libraries and frameworks.
             ctx.pollEvents();
 
             shader.bind();
+            shader.setTexture("image", texture);
+
             mesh.bind();
             glDrawArraysInstanced(GL_TRIANGLES, 0, mesh.size, offsets.size());
 

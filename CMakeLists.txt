@@ -56,14 +56,12 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/param.h
     ${INCLUDE_DIR}/SimpleGL/pbo.h
     ${INCLUDE_DIR}/SimpleGL/resource.h
-    ${INCLUDE_DIR}/SimpleGL/resource-helpers.h
     ${INCLUDE_DIR}/SimpleGL/sglconfig.h
     ${INCLUDE_DIR}/SimpleGL/shader.h
     ${INCLUDE_DIR}/SimpleGL/texture.h
     ${INCLUDE_DIR}/SimpleGL/traits.h
     ${INCLUDE_DIR}/SimpleGL/transform.h
     ${INCLUDE_DIR}/SimpleGL/utils.h
-    ${INCLUDE_DIR}/SimpleGL/window-provider.h
 )
 
 set(SOURCE_FILES
