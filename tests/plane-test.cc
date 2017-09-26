@@ -9,6 +9,8 @@ int main () {
     sgl::MeshResource plane = sgl::createPlane(1);
 
     sgl::PerspectiveCamera cam(ctx.attrs.width, ctx.attrs.height);
+    sgl::CameraController cc(ctx.attrs.width, ctx.attrs.height, cam);
+    ctx.addMouseHandler(cc);
     cam.position = {0,0,-3};
     cam.update();
 

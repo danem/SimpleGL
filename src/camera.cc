@@ -54,4 +54,32 @@ float * OrthoCamera::getProjection () {
     return glm::value_ptr(perspectiveMatrix);
 }
 
+void CameraController::onDragStart() {
+    _originalPos = _camera.position;
+    _originalLook = _camera.looking;
+}
+
+void CameraController::onDragEnd() {}
+
+void CameraController::onDrag (double ox, double oy, double mx, double my, double dx, double dy) {
+    double _dx = mx - ox;
+    double _dy = my - oy;
+
+    float ax = (float)(_dx / _width);
+    float ay = (float)(_dy / _height);
+
+    //printf("cam: %p\n", &_camera);
+    glm::quat qa = glm::angleAxis(ax*2.0f, glm::vec3(0.0f,1.0f,0.0f));
+    glm::quat qb = glm::angleAxis(ay*2.0f, glm::vec3(1.0f,0.0f,0.0f));
+    glm::quat rotation = qa * qb;
+    glm::mat4 rot    = glm::mat4_cast(rotation);
+    glm::vec4 temp   = glm::vec4(_originalPos,1.0f);
+    glm::vec4 newPos = rot * temp;
+    glm::vec3 res(newPos);
+    _camera.position = res;
+    _camera.looking = _originalLook;
+    _camera.update();
+}
+
+
 #endif

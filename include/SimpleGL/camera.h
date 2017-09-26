@@ -1,6 +1,8 @@
 #pragma once
 #ifdef SGL_USE_GLM
 
+#include "event.h"
+
 #include <glm/vec3.hpp> 
 #include <glm/vec4.hpp> 
 #include <glm/mat4x4.hpp> 
@@ -83,6 +85,25 @@ public:
 
     void setFrustrum (float left, float right, float top, float bottom, float near, float far);
     
+};
+
+class CameraController : public MouseDraggerBase {
+private:
+    float _width;
+    float _height;
+    CameraBase& _camera;
+    glm::vec3 _originalPos;
+    glm::vec3 _originalLook;
+
+public:
+    CameraController (float w, float h, CameraBase& camera) :
+        _width(w), _height(h),
+        _camera(camera)
+    {}
+
+    void onDragStart () override;
+    void onDragEnd () override;
+    void onDrag (double ox, double oy, double mx, double my, double dx, double dy) override;
 };
 
 } // end namespace
