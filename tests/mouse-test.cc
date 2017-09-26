@@ -23,6 +23,8 @@ public:
     void onDrag (double ox, double oy, double mx, double my, double dx, double dy) override {
         mp.set({mx,my});
     }
+
+    void onScroll (double sx, double sy) override {}
 };
 
 

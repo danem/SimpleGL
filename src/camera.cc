@@ -1,6 +1,7 @@
 #ifdef SGL_USE_GLM
 
 #include <SimpleGL/camera.h>
+#include <SimpleGL/utils.h>
 #include "glm/ext.hpp"
 
 using namespace sgl;
@@ -78,6 +79,12 @@ void CameraController::onDrag (double ox, double oy, double mx, double my, doubl
     glm::vec3 res(newPos);
     _camera.position = res;
     _camera.looking = _originalLook;
+    _camera.update();
+}
+
+void CameraController::onScroll(double sx, double sy) {
+    glm::vec3 look = _camera.looking - _camera.position;
+    _camera.position += look * sy;
     _camera.update();
 }
 

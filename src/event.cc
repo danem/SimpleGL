@@ -25,6 +25,8 @@ void MouseDraggerBase::operator() (const MouseEvent& event) {
         onDragEnd();
         _mx = _my = _ox = _oy = -1;
         _isDragging = false;
+    } else if (event.eventType == SCROLL) {
+        onScroll(event.x, event.y);
     }
 }
 

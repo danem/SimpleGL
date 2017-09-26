@@ -104,6 +104,7 @@ public:
     void onDragStart () override;
     void onDragEnd () override;
     void onDrag (double ox, double oy, double mx, double my, double dx, double dy) override;
+    void onScroll(double sx, double sy) override;
 };
 
 } // end namespace

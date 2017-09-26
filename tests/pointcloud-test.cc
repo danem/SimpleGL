@@ -24,44 +24,35 @@ int main () {
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
     sgl::PerspectiveCamera cam{ctx.attrs.width, ctx.attrs.height};
-    cam.position = {0,-3,-5};
+    cam.position = {0,3,5};
     cam.looking = {0,0,0};
     cam.update();
 
-    sgl::Param<float> yPos("ypos",0.01f);
+    sgl::CameraController cc(ctx.attrs.width, ctx.attrs.height, cam);
+    ctx.addMouseHandler(cc);
 
     sgl::Shader pcShader = sgl::loadShader(TEST_RES("pointcloud_vs.glsl"),TEST_RES("pointcloud_fs.glsl"));
-    sglCatchGLError();
 
     std::vector<glm::vec4> pts;
     generatePointCloud(500,pts);
 
     sgl::ArrayBuffer<glm::vec4> pcb{pts};
-    sglCatchGLError();
 
     sgl::VertexArray vao;
-    sgl::VertexAttribBuilder(vao)
+    sgl::vertexAttribBuilder(vao)
         .add<glm::vec3, float>(pcb);
     
-    sgl::Transform camRotation;
-
     glViewport(0,0, ctx.attrs.width, ctx.attrs.height); 
     glClearColor(0,0,0,0);
 
     while (ctx.isAlive()){
         ctx.pollEvents();
 
-        camRotation.rotation.z += 0.01f;
-        camRotation.rotation.y += 0.001f;
-        camRotation.update();
-
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         pcShader.bind();
         pcShader.setUniformMatrix4f("cameraMat", cam.getProjection());
         pcShader.setUniformMatrix4f("viewMat", cam.getView());
-        //pcShader.setUniformMatrix4f("modelMat", camRotation.getTransform());
-
 
         auto bg = sgl::bind_guard(vao);
         glDrawArrays(GL_POINTS, 0, pts.size());

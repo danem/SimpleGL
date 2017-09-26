@@ -196,6 +196,7 @@ public:
     virtual void onDragStart () = 0;
     virtual void onDrag (double ox, double oy, double mx, double my, double dx, double dy) = 0;
     virtual void onDragEnd () = 0;
+    virtual void onScroll (double sx, double sy) = 0;
 };
 
 } // end namespace

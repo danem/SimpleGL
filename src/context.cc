@@ -1,6 +1,7 @@
 #include <SimpleGL/context.h>
 #include <SimpleGL/utils.h>
 #include <stdexcept>
+#include <iostream>
 
 
 using namespace sgl;
