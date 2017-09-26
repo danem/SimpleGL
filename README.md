@@ -4,7 +4,7 @@ SimpleGL is a very thin C++ wrapper over OpenGL. Its aim is to make OpenGL devel
 faster and less error prone without sacraficing speed or the full range of features
 OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL applications
 or used with other OpenGL libraries and frameworks.
-
+```c++
     #include <SimpleGL/SimpleGL.h>
     #include <vector>
     #include <glm/glm.hpp>
@@ -43,7 +43,7 @@ or used with other OpenGL libraries and frameworks.
             ctx.swapBuffers();
         }
     }
-
+```
 
 
 
