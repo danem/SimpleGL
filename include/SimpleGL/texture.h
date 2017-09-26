@@ -167,7 +167,7 @@ public:
         detail::GLTextureInterface<kind>::write(nullptr,attrs);
         applyParams();
         this->unbind();
-        sglCatchGLError();
+        sglDbgCatchGLError();
     }
 
     Texture (const void* data, detail::GLTextureInfo<kind>& info) :
@@ -178,7 +178,7 @@ public:
         detail::GLTextureInterface<kind>::write(data,attrs);
         applyParams();
         this->unbind();
-        sglCatchGLError();
+        sglDbgCatchGLError();
     }
 };
 
@@ -258,7 +258,6 @@ using Texture3DBuilder = TextureBuilder<GL_TEXTURE_3D>;
 
 template <GLenum kind>
 void updateTexture (Texture<kind>& tex, const void * data) {
-    printf("hello\n");
     auto bg = sgl::bind_guard(tex);
     detail::GLTextureInterface<kind>::update(data, tex.attrs);
     sglDbgCatchGLError();
@@ -266,7 +265,6 @@ void updateTexture (Texture<kind>& tex, const void * data) {
 
 template <GLenum kind>
 void updateTexture (Texture<kind>& tex, const void * data, int x) {
-    printf("hello2\n");
     static_assert(traits::IsTex1D<kind>::value, "Texture must be 1D");
     auto bg = sgl::bind_guard(tex);
     detail::GLTextureInterface<kind>::update(data, tex.attrs, x);
@@ -276,7 +274,6 @@ void updateTexture (Texture<kind>& tex, const void * data, int x) {
 template <GLenum kind>
 void updateTexture (Texture<kind>& tex, const void * data, int x, int y) {
     static_assert(traits::IsTex2D<kind>::value, "Texture must be 2D");
-    printf("hello3\n");
     auto bg = sgl::bind_guard(tex);
     detail::GLTextureInterface<kind>::update(data, tex.attrs, x, y);
     sglDbgCatchGLError();
@@ -285,11 +282,9 @@ void updateTexture (Texture<kind>& tex, const void * data, int x, int y) {
 template <GLenum kind>
 void updateTexture (Texture<kind>& tex, const void * data, int x, int y, int z) {
     static_assert(traits::IsTex3D<kind>::value, "Texture must be 3D");
-    printf("hello4\n");
     auto bg = sgl::bind_guard(tex);
     detail::GLTextureInterface<kind>::update(data, tex.attrs, x, y, z);
     sglDbgCatchGLError();
-
 }
 
 } // end namespace
