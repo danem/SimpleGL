@@ -3,6 +3,10 @@
 #include <type_traits>
 #include <iostream>
 
+#ifdef SGL_USE_GLM
+#    include <glm/glm.hpp>
+#endif
+
 namespace sgl {
 
 namespace detail {
@@ -28,6 +32,21 @@ namespace detail {
         else value -= step;
     }
 } // end namespace
+
+
+#ifdef SGL_USE_GLM
+// ParamPrinter
+template <class T>
+void VecPrinter (const char * name, const T& value){
+    int len = T::length();
+    std::cout << name << ": {";
+    for (int i = 0; i < len; i++){
+        std::cout << value[i];
+        if (i < len - 1) std::cout << ", ";
+    }
+    std::cout << "}" << std::endl;
+}
+#endif
 
 template <
     class V,

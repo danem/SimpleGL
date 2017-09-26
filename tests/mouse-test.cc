@@ -8,17 +8,6 @@
 #include <iostream>
 #include <type_traits>
 
-template <class T>
-void VecPrinter (const char * name, const T& value){
-    int len = T::length();
-    std::cout << name << ": {";
-    for (int i = 0; i < len; i++){
-        std::cout << value[i];
-        if (i < len - 1) std::cout << ", ";
-    }
-    std::cout << "}" << std::endl;
-}
-
 class MouseDragger : public sgl::MouseDraggerBase {
 public:
 
@@ -26,7 +15,7 @@ public:
 
     MouseDragger () :
         sgl::MouseDraggerBase(),
-        mp("mouse", VecPrinter)
+        mp("mouse", sgl::VecPrinter)
     {}
 
     void onDragStart () override {}
