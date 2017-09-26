@@ -13,7 +13,7 @@ int main () {
     sgl::Context ctx{500,500,"instancing test"};
     sgl::Shader shader = sgl::loadShader("instanced_vs.glsl", "fs.glsl");
 
-    std::vector<glm::vec2> offsets;
+    std::vector<glm::vec3> offsets;
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++){
             offsets.emplace_back(i/10.f, j/10.f, i/j);
@@ -44,9 +44,6 @@ int main () {
     }
 }
 ```
-
-
-
 
 ### Features:
 
