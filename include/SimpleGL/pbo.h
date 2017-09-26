@@ -58,7 +58,6 @@ public:
         pbo1.bind();
 
         glTexSubImage2D(_destTexture.type, 0, 0, 0, _destTexture.attrs.width, _destTexture.attrs.height, _destTexture.attrs.format, _destTexture.attrs.data_type, 0);
-        //sgl::updateTexture(_destTexture, data);
 
         sglDbgCatchGLError();
 
@@ -67,11 +66,6 @@ public:
         memcpy(dest, data, sizeof(T) * count);
         glUnmapBuffer(pbo2.type);
         pbo2.unbind();
-        /*
-        auto bv = sgl::buffer_view<T>(pbo2);
-        bv.write(data, count);
-        */
-
         sglDbgCatchGLError();
     }
 };

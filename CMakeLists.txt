@@ -10,6 +10,7 @@ set(SGL_USE_GLFW ON CACHE BOOL "Use GLFW as window api")
 set(SGL_USE_GLEW ON CACHE BOOL "Use GLEW")
 set(SGL_USE_GLM ON CACHE BOOL "Use GLM")
 set(SGL_COMPILE_TESTS ON CACHE BOOL "Make test projects")
+set(SGL_COMPILE_BENCHMARKS OFF CACHE BOOL "Make benchmarks")
 set(SGL_DEBUG OFF CACHE BOOL "SGL Debug Mode")
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -19,6 +20,7 @@ set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 set(CMAKE_BUILD_TYPE Release)
 
 set(DEFINITIONS "")
+
 
 find_package(OpenGL REQUIRED)
 
@@ -40,6 +42,7 @@ endif()
 if(${SGL_DEBUG})
     set(DEFINITIONS ${DEFINITIONS} -DSGL_DEBUG=1)
 endif()
+
 
 
 
@@ -74,6 +77,9 @@ set(SOURCE_FILES
     ${SOURCE_DIR}/utils.cc
 )
 
+set(OTHER_FILES
+    README.md)
+
 
 #find_package(SOIL REQUIRED)
 
@@ -97,10 +103,14 @@ set(EXTERN_INCLUDES ${SOIL_INCLUDE_DIR}
 
 
 add_definitions(${DEFINITIONS})
-add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${INCLUDE_FILES})
+add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${INCLUDE_FILES} ${OTHER_FILES})
 target_link_libraries(${PROJECT_NAME} ${EXTERN_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 
 if(${SGL_COMPILE_TESTS})
     add_subdirectory("./tests")
+endif()
+
+if(${SGL_COMPILE_BENCHMARKS})
+    add_subdirectory("./benchmarks")
 endif()
