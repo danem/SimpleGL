@@ -1,6 +1,6 @@
 # SimpleGL
 
-SimpleGL is a very thin C++ wrapper over OpenGL. Its aim is to make OpenGL development
+SimpleGL is a very thin C++11 wrapper over OpenGL. Its aim is to make OpenGL development
 faster and less error prone without sacraficing speed or the full range of features
 OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL applications
 or used with other OpenGL libraries and frameworks.
@@ -53,7 +53,7 @@ int main () {
 * Low overhead, safe texture interface
 * Basic parametric mesh primitive constructors
 * Simple, flexible opengl context creation API
-
+* C++11
 
 ### Dependencies
 
