@@ -62,7 +62,8 @@ struct SimState {
         cellShader(sgl::loadShader(TEST_RES("ident_vs.glsl"), TEST_RES("game-of-life_fs.glsl"))),
         shader(sgl::loadShader(TEST_RES("ident_vs.glsl"), TEST_RES("texture_fs.glsl"))),
         continueSim(true),
-        renderQuad(sgl::createPlane())
+        renderQuad(sgl::createPlane(1))
+
     {}
 
 };
@@ -70,7 +71,6 @@ struct SimState {
 void renderGOL (SimState& state, Slab& slab){ 
     while (state.ctx.isAlive() && state.continueSim) {
         state.ctx.pollEvents();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         Surface& current = slab.ping();
         {
             auto bg = sgl::bind_guard(current.fbo);
@@ -101,6 +101,7 @@ int main () {
     std::array<uint8_t,width*height*3> texData{};
 
     srand(time(NULL));
+
 
     SimState state(width,height);
 

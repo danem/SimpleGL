@@ -22,9 +22,9 @@ MeshResource::MeshResource (MeshData& data) :
 {
     auto bg = sgl::bind_guard(*this);
 
-    sgl::bufferData(EBO, data.indices);
-    sgl::bufferData(VBO, data.vertices);
-    
+    sgl::bufferData(VBO, data.vertices, GL_STATIC_DRAW);
+    sgl::bufferData(EBO, data.indices, GL_STATIC_DRAW);
+
     sgl::VertexAttribBuilder(*this)
         .add<glm::vec3, glm::vec2, glm::vec3>(VBO);
 }

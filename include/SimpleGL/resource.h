@@ -111,13 +111,13 @@ public:
     operator GLuint() const { return _id; }
 
     void bind () {
-        if (_isBound) return;
+        //if (_isBound) return;
         detail::GLInterface<kind>::bind(kind, _id);
         _isBound = true;
     }
 
     void unbind () {
-        if (!_isBound) return;
+        //if (!_isBound) return;
         detail::GLInterface<kind>::bind(kind, 0);
         _isBound = false;
     }
@@ -168,12 +168,15 @@ template <GLenum kind>
 class BindGuard {
 private:
     GLuint _res;
+    // TODO: A bit of a hack to cut down on unecessary binds
+    bool _alreadyBound;
 
 public:
-    BindGuard (GLuint res) :
-        _res(res)
+    BindGuard (GLuint res, bool alreadyBound = false) :
+        _res(res),
+        _alreadyBound(alreadyBound)
     {
-        detail::GLInterface<kind>::bind(kind, _res);
+        if (!_alreadyBound) detail::GLInterface<kind>::bind(kind, _res);
     }
 
     /*
@@ -183,15 +186,15 @@ public:
     */
 
     ~BindGuard () {
-        detail::GLInterface<kind>::bind(kind, 0);
+        if (!_alreadyBound) detail::GLInterface<kind>::bind(kind, 0);
     }
 };
 
 template <GLenum kind>
-BindGuard<kind> bind_guard (GLuint res) { return {res}; }
+BindGuard<kind> bind_guard (GLuint res, bool alreadyBound = false) { return {res, alreadyBound}; }
 
 template <class T>
-BindGuard<T::type> bind_guard (T& res) { return {static_cast<GLuint>(res)}; }
+BindGuard<T::type> bind_guard (T& res, bool alreadyBound = false) { return {static_cast<GLuint>(res), alreadyBound}; }
 
 
 template <GLenum kind>
@@ -254,9 +257,19 @@ namespace detail {
         BufferView (GLuint res, GLenum access) :
             _res(res)
         {
+            // TODO: Benchmark glMapBuffer vs glMapBufferRange
             detail::GLInterface<kind>::bind(kind,_res);
             _data = static_cast<D*>(glMapBuffer(kind, access));
         }
+
+        BufferView(GLuint res, size_t start, size_t len, GLenum access) :
+            _res(res)
+        {
+            // TODO: Benchmark glMapBuffer vs glMapBufferRange
+            detail::GLInterface<kind>::bind(kind,_res);
+            _data = static_cast<D*>(glMapBufferRange(kind, start, len, access));
+        }
+
 
         ~BufferView () {
             commit();
@@ -297,6 +310,19 @@ detail::BufferView<D, R::type> buffer_view (R&& res, GLenum access = GL_READ_WRI
     return {res,access};
 }
 
+template <class D, class R>
+detail::BufferView<D, R::type> buffer_view (R& res, size_t start, size_t len, GLenum access) {
+    return {res,start,len,access};
+}
+
+template <class D, class R>
+detail::BufferView<D, R::type> buffer_view (R&& res, size_t start, size_t len, GLenum access) {
+    return {res,start,len,access};
+}
+
+
+// GLBuffer is a very thin layer over GLResource that brings type safety to
+// OpenGL buffer objects. GLBuffer adds no additional overhead to GLResource.
 template <GLenum kind, class T>
 class GLBuffer : public GLResource<kind> {
 public:
@@ -323,6 +349,11 @@ public:
     GLBuffer (T * data, size_t len, GLenum usage = GL_DYNAMIC_DRAW) : GLResource<kind>()
     {
         bufferData(*this, data, len, usage);
+    }
+
+    GLBuffer (T&& data, GLenum usage = GL_DYNAMIC_DRAW ) : GLResource<kind> ()
+    {
+        bufferData(*this, &data, 1, usage);
     }
 
 };
@@ -377,6 +408,19 @@ void bufferData (GLuint res, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRA
 
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 
+// VertexAttribBuilder is a helper class allowing for simple,
+// error free initialization of VAOs.
+// Example usage:
+//
+//    struct Vertex {
+//        vec4 position_and_size;
+//    };
+//
+//    sgl::GLResource<GL_VERTEX_ARRAY> vao;
+//    sgl::GLBuffer<Vertex> vbo(vertices);
+//    sgl::VertexAttribBuilder builder(vao)
+//        .add<vec3,float>(vbo);
+//
 class VertexAttribBuilder {
 
 public:
@@ -394,6 +438,7 @@ public:
 
     template <class T, class ...Ts>
     VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res, bool normalized = false) {
+        auto bg = bind_guard(vao, vao.isBound());
         addHelper<T,Ts...>(res, traits::param_size<T,Ts...>::size, normalized);
         buffers += 1;
         return *this;
@@ -401,6 +446,7 @@ public:
 
     template <class D, class T = D, class ...Ts>
     VertexAttribBuilder& add (ArrayBuffer<D>& res, bool normalized = false) {
+        auto bg = bind_guard(vao, vao.isBound());
         addHelper<T,Ts...>(res, traits::param_size<T,Ts...>::size, normalized);
         buffers += 1;
         return *this;
@@ -419,14 +465,13 @@ private:
         GLenum type = traits::GLType<T>::type;
         size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
         int components = sizeof(T) / elSize;
-        auto bg1 = bind_guard(vao);
-        auto bg2 = bind_guard(res);
+        res.bind();
         glEnableVertexAttribArray(attribs);
         glVertexAttribPointer(attribs, components, type, SGL_BOOL(normalized), stride, (GLvoid*)offset);
         glVertexAttribDivisor(attribs, buffers);
         offset += sizeof(T);
         attribs += 1;
-        sglCatchGLError();
+        sglDbgCatchGLError();
     }
 };
 
@@ -448,8 +493,6 @@ public:
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
     }
 };
-
-
 
 
 using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;

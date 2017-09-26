@@ -62,7 +62,6 @@ namespace detail {
 
 } // namespace
 
-// TODO: Make this a GLResource
 class Shader : public GLResource<GL_PROGRAM> {
 private:
     GLint getLocation (const char * id);
@@ -106,6 +105,8 @@ public:
     }
 
     GLint setTexture (const std::string& id, GLenum target, GLuint handle, int textureUnit);
+
+    void setUniformBlock (const char * id, GLResource<GL_UNIFORM_BUFFER>& ubo, GLuint unit = 0);
 
 };
 

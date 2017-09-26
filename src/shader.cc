@@ -232,6 +232,13 @@ GLint Shader::setTexture (const std::string& id, GLenum target, GLuint handle, i
     glBindTexture(target, handle);
     return loc;
 }
+
+void Shader::setUniformBlock(const char * id, GLResource<GL_UNIFORM_BUFFER>& buffer, GLuint unit) {
+    unsigned int idx = glGetUniformBlockIndex(_id,id);
+    glBindBufferBase(GL_UNIFORM_BUFFER, unit, static_cast<GLuint>(buffer));
+    glUniformBlockBinding(_id, idx, unit);
+}
+
 //
 //GLint Shader::setTexture (std::string id, Texture * texture, int unit) {
 //    return setTexture(id, texture->getTarget(), texture->getHandle(), unit);
