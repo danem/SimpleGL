@@ -110,6 +110,8 @@ public:
 
 };
 
+using MShader = GLResourceM<Shader>;
+
 Shader loadShader (const std::string& computePath);
 Shader loadShader (const std::string& vertPath, const std::string& fragPath);
 Shader loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath);

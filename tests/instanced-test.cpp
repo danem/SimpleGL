@@ -11,7 +11,7 @@ int main () {
     std::vector<glm::vec2> offsets;
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++){
-            offsets.emplace_back(i/10.f + 0.1f,j/10.f + 0.1f);
+            offsets.emplace_back(i/10.f, j/10.f);
         }
     }
     sgl::ArrayBuffer<glm::vec2> offsetsBuf{offsets};
@@ -25,8 +25,8 @@ int main () {
         glClear(GL_COLOR_BUFFER_BIT);
         ctx.pollEvents();
 
-        auto sg = sgl::bind_guard(shader);
-        auto mg = sgl::bind_guard(mesh);
+        shader.bind();
+        mesh.bind();
         glDrawArraysInstanced(GL_TRIANGLES, 0, mesh.size, offsets.size());
 
         ctx.swapBuffers();

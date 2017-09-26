@@ -24,9 +24,11 @@ int main () {
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
     sgl::PerspectiveCamera cam{ctx.attrs.width, ctx.attrs.height};
-    cam.position = {0,0,-5};
+    cam.position = {0,-3,-5};
     cam.looking = {0,0,0};
     cam.update();
+
+    sgl::Param<float> yPos("ypos",0.01f);
 
     sgl::Shader pcShader = sgl::loadShader(TEST_RES("pointcloud_vs.glsl"),TEST_RES("pointcloud_fs.glsl"));
     sglCatchGLError();
@@ -58,7 +60,7 @@ int main () {
         pcShader.bind();
         pcShader.setUniformMatrix4f("cameraMat", cam.getProjection());
         pcShader.setUniformMatrix4f("viewMat", cam.getView());
-        pcShader.setUniformMatrix4f("modelMat", camRotation.getTransform());
+        //pcShader.setUniformMatrix4f("modelMat", camRotation.getTransform());
 
 
         auto bg = sgl::bind_guard(vao);

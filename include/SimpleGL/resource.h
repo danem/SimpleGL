@@ -6,6 +6,7 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <type_traits>
 
 namespace sgl {
 
@@ -159,10 +160,38 @@ public:
         detail::GLInterface<kind>::bind(kind, _ids[idx]);
     }
 
-    void ubind (size_t idx) {
+    void unbind (size_t idx) {
         detail::GLInterface<kind>::bind(kind, 0);
     }
 };
+
+template <class T>
+class GLResourceM {
+private:
+    static_assert(std::is_base_of<GLResource<T::type>,T>::value, "Must be GLResource");
+    T _res;
+
+public:
+
+    GLResourceM () {}
+
+    template <class ...Ts>
+    GLResourceM (Ts... args) :
+        _res(args...)
+    {}
+
+    ~GLResourceM () {
+        sglDgbLog("freeing resource {kind: %d, id: %d}\n", T::type, static_cast<GLuint>(_res));
+        _res.release();
+    }
+
+    operator T&() const { return _res; }
+    operator GLuint() const { return static_cast<GLuint>(_res); }
+
+    T& get () const { return _res; }
+};
+
+
 
 template <GLenum kind>
 class BindGuard {
@@ -179,14 +208,23 @@ public:
         if (!_alreadyBound) detail::GLInterface<kind>::bind(kind, _res);
     }
 
-    /*
-    BindGuard (const BindGuard<kind>& other) :
-        _res(other._res)
-    {}
-    */
-
     ~BindGuard () {
         if (!_alreadyBound) detail::GLInterface<kind>::bind(kind, 0);
+    }
+};
+
+template <GLenum kind>
+class ResourceGuard {
+private:
+    GLuint _res;
+
+public:
+    ResourceGuard (GLuint res) :
+        _res(res)
+    {}
+
+    ~ResourceGuard () {
+        detail::GLInterface<kind>::destroy(1,&_res);
     }
 };
 
@@ -196,6 +234,11 @@ BindGuard<kind> bind_guard (GLuint res, bool alreadyBound = false) { return {res
 template <class T>
 BindGuard<T::type> bind_guard (T& res, bool alreadyBound = false) { return {static_cast<GLuint>(res), alreadyBound}; }
 
+template <GLenum kind>
+ResourceGuard<kind> resource_guard (GLuint res) { return {res}; }
+
+template <class T>
+ResourceGuard<T::type> resource_guard (T& res) { return {static_cast<GLuint>(res)}; }
 
 template <GLenum kind>
 using GLSharedResource = std::shared_ptr<GLResource<kind>>;
@@ -239,8 +282,6 @@ GLSharedResource<Res::type> shared_resource (V value) {
         delete r;
     }};
 }
-
-
 
 
 namespace detail {
@@ -355,17 +396,18 @@ public:
     {
         bufferData(*this, &data, 1, usage);
     }
-
 };
 
-template <class T>
-using ArrayBuffer = GLBuffer<GL_ARRAY_BUFFER, T>;
+template <GLenum kind, class T> using MGLBuffer = GLResourceM<GLBuffer<kind,T>>;
 
-template <class T = GLuint>
-using ElementArrayBuffer = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, T>;
+template <class T> using ArrayBuffer = GLBuffer<GL_ARRAY_BUFFER, T>;
+template <class T> using MArrayBuffer = GLResourceM<ArrayBuffer<T>>;
 
-template <class T>
-using UniformBuffer = GLBuffer<GL_UNIFORM_BUFFER, T>;
+template <class T = GLuint> using ElementArrayBuffer = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, T>;
+template <class T = GLuint> using MElementArrayBuffer = GLResourceM<ElementArrayBuffer<T>>;
+
+template <class T> using UniformBuffer = GLBuffer<GL_UNIFORM_BUFFER, T>;
+template <class T> using MUniformBuffer = GLResourceM<UniformBuffer<T>>;
 
 template <class R, class D>
 void bufferData (R&& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
@@ -407,20 +449,8 @@ void bufferData (GLuint res, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRA
 
 
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
+using MVertexArray = GLResourceM<VertexArray>;
 
-// VertexAttribBuilder is a helper class allowing for simple,
-// error free initialization of VAOs.
-// Example usage:
-//
-//    struct Vertex {
-//        vec4 position_and_size;
-//    };
-//
-//    sgl::GLResource<GL_VERTEX_ARRAY> vao;
-//    sgl::GLBuffer<Vertex> vbo(vertices);
-//    sgl::VertexAttribBuilder builder(vao)
-//        .add<vec3,float>(vbo);
-//
 class VertexAttribBuilder {
 
 public:
@@ -494,6 +524,7 @@ public:
     }
 };
 
+using MFramebuffer = GLResourceM<Framebuffer>;
 
 using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
 using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;

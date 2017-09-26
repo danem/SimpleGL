@@ -249,9 +249,17 @@ public:
     }
 };
 
+template <GLenum kind> using MTexture = GLResourceM<Texture<kind>>;
+
 using Texture1D        = Texture<GL_TEXTURE_1D>;
+using MTexture1D       = MTexture<GL_TEXTURE_1D>;
+
 using Texture2D        = Texture<GL_TEXTURE_2D>;
+using MTexture2D       = MTexture<GL_TEXTURE_2D>;
+
 using Texture3D        = Texture<GL_TEXTURE_3D>;
+using MTexture3D       = MTexture<GL_TEXTURE_3D>;
+
 using Texture1DBuilder = TextureBuilder<GL_TEXTURE_1D>;
 using Texture2DBuilder = TextureBuilder<GL_TEXTURE_2D>;
 using Texture3DBuilder = TextureBuilder<GL_TEXTURE_3D>;

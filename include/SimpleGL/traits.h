@@ -240,6 +240,14 @@ namespace traits {
     template <GLenum v, class T = GLenum>
     using IfShaderProgram = typename std::enable_if<traits::IsShaderProgram<v>::value, T>::type;
 
+    template <GLenum v>
+    using IsGLObject = traits::eval<
+        IsShaderProgram<v>::value
+      | IsBuffer<v>::value
+      | IsTexture<v>::value
+      | IsFramebuffer<v>::value
+      | IsVertexArray<v>::value>;
+
 
     // C++ Type to GL Type
     template <class T>

@@ -22,8 +22,10 @@
 
 #ifdef SGL_DEBUG
 #    define sglDbgCatchGLError() _sglGetGLError(false)
+#    define sglDgbLog(...) do { printf(__VA_ARGS__); } while(0);
 #else
 #    define sglDbgCatchGLError()
+#    define sglDgbLog(...)
 #endif
 
 namespace sgl {

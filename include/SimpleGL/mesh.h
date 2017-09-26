@@ -50,6 +50,8 @@ public:
 
 };
 
+using MMeshResource = GLResourceM<MeshResource>;
+
 MeshResource createPlane (int divs = 1);
 
 } // end namespace
