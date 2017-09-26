@@ -64,3 +64,6 @@ or used with other OpenGL libraries and frameworks.
 * GLEW
 * GLM (optional)
 
+### Compatibility
+
+Tested on OSX and Ubuntu.
