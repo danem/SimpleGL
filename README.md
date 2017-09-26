@@ -48,7 +48,7 @@ or used with other OpenGL libraries and frameworks.
 
 
 
-###Features:
+##Features:
 
 * Near zero overhead "typesafe" opengl object wrappers
 * Opengl object lifetime managment
@@ -58,9 +58,9 @@ or used with other OpenGL libraries and frameworks.
 * Simple, flexible opengl context creation API
 
 
-###Dependencies
+##Dependencies
 
 * GLFW 3+
 * GLEW
-* GLM
+* GLM (optional)
 
