@@ -71,20 +71,43 @@ namespace detail {
     };
 
     template <GLenum kind>
+    struct GLInterface<kind, traits::IfShaderStage<kind>> {
+        static void create (int len, GLuint* dest) { *dest = glCreateShader(kind); }
+        static void destroy (int len, GLuint* dest) { glDeleteShader(*dest); }
+        static void bind (GLenum k, GLuint id) {}
+    };
+
+    template <GLenum kind>
     struct GLInterface<kind, traits::IfShaderProgram<kind>> {
         static void create (int len, GLuint* dest) { __glCreateProgram(len,dest); }
         static void destroy (int len, GLuint* dest) { __glDeleteProgram(len,dest); }
         static void bind (GLenum k, GLuint id) { __glUseProgram(k,id); }
     };
 
+    /*
     template <GLenum kind, class T = GLenum>
-    struct GLUpdateableInterface;
+    struct GLBufferInterface;
 
     template <GLenum kind>
-    struct GLUpdateableInterface<kind, traits::IfBuffer<kind>> {
-        static void write (size_t len, char * data, GLenum mode) { glBufferData(kind, len, data, mode); }
-        static void update (size_t len, char * data, GLenum mode) { glBufferData(kind, len, data, mode); }
+    struct GLBufferInterface<kind, traits::IfBuffer<kind>> {
+        static inline void initializeMutable (size_t len, char * data, GLenum mode) { glBufferData(kind, len, data, mode); }
+        static inline void initializeImmutable (size_t len, char * data, GLbitfield mode) { glBufferStorage(kind, len, data, mode); }
+        static inline void update (GLintptr offset, GLsizeiptr size, const GLvoid * data) { glBufferSubData(kind, offset, size, data); }
+        static inline void* map (GLenum mode) { return glMapBuffer(kind,mode); }
+        static inline void unmap () { glUnmapBuffer(kind); }
+        static inline void* mapRange (GLintptr offset, GLsizeiptr size, GLbitfield mode) { return glMapBufferRange(kind, offset, size, mode); }
     };
+
+    template <GLenum kind>
+    struct GLBufferInterface<kind,traits::IsTexture<kind>> {
+        static inline void initializeMutable (size_t len, char * data, GLenum mode) { glBufferData(kind, len, data, mode); }
+        static inline void initializeImmutable (size_t len, char * data, GLbitfield mode) { glBufferStorage(kind, len, data, mode); }
+        static inline void update (GLintptr offset, GLsizeiptr size, const GLvoid * data) { glBufferSubData(kind, offset, size, data); }
+        static inline void* map (GLenum mode) { return glMapBuffer(kind,mode); }
+        static inline void unmap () { glUnmapBuffer(kind); }
+        static inline void* mapRange (GLintptr offset, GLsizeiptr size, GLbitfield mode) { return glMapBufferRange(kind, offset, size, mode); }
+    };
+    */
 } // end namespace
 
 
@@ -216,15 +239,23 @@ public:
 template <GLenum kind>
 class ResourceGuard {
 private:
-    GLuint _res;
+    GLResource<kind> _res;
 
 public:
-    ResourceGuard (GLuint res) :
+    ResourceGuard (GLResource<kind> res) :
         _res(res)
     {}
 
     ~ResourceGuard () {
-        detail::GLInterface<kind>::destroy(1,&_res);
+        _res.release();
+    }
+
+    operator GLResource<kind>&() {
+        return _res;
+    }
+
+    GLResource<kind>& get () {
+        return _res;
     }
 };
 
@@ -239,6 +270,9 @@ ResourceGuard<kind> resource_guard (GLuint res) { return {res}; }
 
 template <class T>
 ResourceGuard<T::type> resource_guard (T& res) { return {static_cast<GLuint>(res)}; }
+
+template <class T>
+ResourceGuard<T::type> resource_guard (T&& res) { return {static_cast<GLuint>(res)}; }
 
 template <GLenum kind>
 using GLSharedResource = std::shared_ptr<GLResource<kind>>;

@@ -7,6 +7,7 @@
 
 namespace sgl {
 
+// TODO: this is not generalized enough
 class PBOUploader {
 private:
     sgl::Texture2D& _destTexture;
@@ -69,8 +70,6 @@ public:
         sglDbgCatchGLError();
     }
 };
-
-
 
 } // end namespace
 

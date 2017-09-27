@@ -17,20 +17,18 @@ set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-set(CMAKE_BUILD_TYPE Release)
-
 set(DEFINITIONS "")
 
 
 find_package(OpenGL REQUIRED)
 
 if(${SGL_USE_GLFW})
-    find_package(GLEW REQUIRED)
+    find_package(GLFW REQUIRED)
     set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLFW=1)
 endif()
 
 if(${SGL_USE_GLEW})
-    find_package(GLFW REQUIRED)
+    find_package(GLEW REQUIRED)
     set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLEW=1)
 endif()
 
@@ -76,14 +74,14 @@ set(SOURCE_FILES
 )
 
 set(OTHER_FILES
-    README.md)
+    README.md
+    docs/lifetimes.md)
 
 
 #find_package(SOIL REQUIRED)
 
 set(EXTERN_LIBRARIES ${GLFW_LIBRARIES}
                      ${GLEW_LIBRARIES}
-                     ${SOIL_LIBRARIES}
                      ${OPENGL_LIBRARIES})
 
 # OSX needs Cocoa
@@ -93,8 +91,7 @@ if (APPLE)
 endif()
 
 
-set(EXTERN_INCLUDES ${SOIL_INCLUDE_DIR}
-                    ${GLM_INCLUDE_DIR}
+set(EXTERN_INCLUDES ${GLM_INCLUDE_DIR}
                     ${GLEW_INCLUDE_DIR}
                     ${GLFW3_INCLUDE_DIR}
                     ${GLM_INCLUDE_DIR})
@@ -112,3 +109,10 @@ endif()
 if(${SGL_COMPILE_BENCHMARKS})
     add_subdirectory("./benchmarks")
 endif()
+
+install(TARGETS SimpleGL3 ARCHIVE DESTINATION lib)
+install(DIRECTORY ${INCLUDE_DIR}/SimpleGL DESTINATION include)
+
+add_custom_target(install_SimpleLG3
+    COMMAND make install
+)

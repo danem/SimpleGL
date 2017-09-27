@@ -4,6 +4,8 @@
 
 namespace sgl {
 
+// TODO: Make these an enum. These symbols just add bloat to binary.
+
 const int RELEASE = 0;
 const int PRESS   = 1;
 const int REPEAT  = 2;

@@ -1,65 +1,59 @@
-#ifndef _SHADER_H_
-#define _SHADER_H_
+#ifndef SHADER_H
+#define SHADER_H
 
 #include "sglconfig.h"
-#include "traits.h"
 #include "resource.h"
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <stdexcept>
+#include <string.h>
 
 namespace sgl {
 
-namespace detail {
+/**
+* ShaderStage represents a single compiled shader part (eg GL_VERTEX_SHADER).
+* ShaderStages can be cached and relinked to save compilation time.
+*/
+template <GLenum kind>
+struct ShaderStage : GLResource<kind> {
+    static_assert(traits::IsShaderStage<kind>::value, "Invalid shader stage type");
+};
 
-    struct ShaderInputs {
+/**
+* Given a source string and an optional path, allocate a ShaderStage and
+* compile the provided program. path is present for helpful error messages.
+*/
+template<GLenum kind>
+ShaderStage<kind> compileShaderStage (const std::string& source, const std::string& path = "") {
+    ShaderStage<kind> shader;
+    const char * src = source.c_str();
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
 
-        bool hasGeometryShader;
-        bool isComputeShader;
+    GLint res;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &res);
+    if (res == GL_FALSE){
+        char msgbuf[200] = {0};
+        GLsizei len = 0;
+        glGetShaderInfoLog(shader, 200, &len, msgbuf);
+        GLenum err = glGetError();
+        std::stringstream errMsg;
+        errMsg << "Got error code " << err << " while compiling: " << path << " \n" << msgbuf;
+        throw std::runtime_error(errMsg.str());
+    }
+    return shader;
+}
 
-        const std::string vertPath;
-        const std::string vertSrc;
+/**
+* Load a glsl program from the specified file and compile it.
+*/
+template <GLenum kind>
+ShaderStage<kind> loadShaderStage (const std::string& path) {
+    std::ifstream vf(path);
+    std::string src((std::istreambuf_iterator<char>(vf)),
+                     std::istreambuf_iterator<char>());
+    return compileShaderStage<kind>(src,path);
+}
 
-        const std::string fragPath;
-        const std::string fragSrc;
 
-        const std::string geomPath;
-        const std::string geomSrc;
-
-        const std::string computePath;
-        const std::string computeSrc;
-
-        ShaderInputs (
-            const std::string& vp, const std::string& vs,
-            const std::string& fp, const std::string& fs,
-            const std::string& gp, const std::string& gs
-        ) : 
-            vertPath(vp), vertSrc(vs),
-            fragPath(fp), fragSrc(fs),
-            geomPath(gp), geomSrc(gs),
-            hasGeometryShader(true), isComputeShader(false)
-        {}
-
-        ShaderInputs (
-            const std::string& vp, const std::string& vs,
-            const std::string& fp, const std::string& fs
-        ) : 
-            vertPath(vp), vertSrc(vs),
-            fragPath(fp), fragSrc(fs),
-            hasGeometryShader(false), isComputeShader(false)
-        {}
-
-        ShaderInputs ( const std::string& cp, const std::string& cs) :
-            computePath(cp), computeSrc(cs), isComputeShader(true), hasGeometryShader(false)
-        {}
-    };
-
-    GLuint compileShaderProgram (GLenum type, const std::string& path, const std::string& src);
-    GLuint compileAndLinkProgram (const ShaderInputs& inputs);
-
-} // namespace
 
 class Shader : public GLResource<GL_PROGRAM> {
 private:
@@ -109,8 +103,57 @@ public:
 
 };
 
-using MShader = GLResourceM<Shader>;
+namespace detail {
+    inline void catchShaderLinkErrors (GLuint shader) {
+        GLint res;
+        glGetProgramiv(shader, GL_LINK_STATUS, &res);
+        if (res == GL_FALSE){
+            char msgbuf[200] = {0};
+            GLsizei len = 0;
+            glGetProgramInfoLog(shader, 200, &len, msgbuf);
+            int err = glGetError();
+            std::stringstream errMsg;
+            errMsg << "Got error code " << err << ":\n" << msgbuf;
+            throw std::runtime_error(errMsg.str());
+        }
+    }
 
+    template <class T>
+    void linkShaderStagesHelper (Shader& shader, T& stage) {
+        static_assert(traits::IsShaderStage<T::type>::value, "Input must be shader stage");
+        glAttachShader(shader,stage);
+    }
+
+    template <class T, class ...Ts>
+    void linkShaderStagesHelper (Shader& shader, T& stage, Ts ...args){
+        linkShaderStagesHelper(shader,stage);
+        linkShaderStagesHelper(shader,args...);
+    }
+
+} // end namespace
+
+
+// TODO: Having the signature like this kills IDEs code completion.
+// T Should be a ShaderStage ...
+template <class T, class ...Ts>
+Shader linkShaderStages (T& stage, Ts ...stages) {
+    Shader shader;
+    detail::linkShaderStagesHelper(shader,stage,stages...);
+    glLinkProgram(shader);
+    detail::catchShaderLinkErrors(shader);
+    return shader;
+}
+
+template <class T>
+Shader linkShaderStages (T& stage) {
+    Shader shader;
+    detail::linkShaderStagesHelper(shader,stage);
+    glLinkProgram(shader);
+    detail::catchShaderLinkErrors(shader);
+    return shader;
+}
+
+// Dead simple interface
 Shader loadShader (const std::string& computePath);
 Shader loadShader (const std::string& vertPath, const std::string& fragPath);
 Shader loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath);
@@ -119,5 +162,7 @@ Shader compileShader (const std::string& computeSrc);
 Shader compileShader (const std::string& vertSrc, const std::string& fragSrc);
 Shader compileShader (const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc);
 
-}
-#endif
+
+} // end of namespace
+
+#endif // SHADER2_H

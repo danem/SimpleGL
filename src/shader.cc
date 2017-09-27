@@ -1,128 +1,44 @@
 #include <SimpleGL/shader.h>
-#include <SimpleGL/utils.h>
-#include <sstream>
-#include <fstream>
-#include <cstring>
-#include <stdexcept>
-#include <iostream>
 
 using namespace sgl;
 
-GLuint sgl::detail::compileShaderProgram (GLenum type, const std::string& path, const std::string& src) {
-    int shader = glCreateShader(type);
-    const char * source = src.c_str();
-
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-    GLint res;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &res);
-    if (res == GL_FALSE){
-        char msgbuf[200] = {0};
-        GLsizei len = 0;
-        glGetShaderInfoLog(shader, 200, &len, msgbuf);
-        int err = glGetError();
-        std::stringstream errMsg;
-        errMsg << "Got error code " << err << " while compiling: " << path << " \n" << msgbuf;
-        throw std::runtime_error(errMsg.str());
-    }
-    return shader;
+Shader sgl::loadShader (const std::string& computePath) {
+    auto stage = resource_guard(loadShaderStage<GL_COMPUTE_SHADER>(computePath));
+    return linkShaderStages(stage.get());
 }
 
-GLuint sgl::detail::compileAndLinkProgram (const sgl::detail::ShaderInputs& inputs) {
-    GLuint prog = glCreateProgram();
-    std::vector<GLuint> shaders;
-
-    if (inputs.isComputeShader) {
-        shaders.push_back(sgl::detail::compileShaderProgram(GL_COMPUTE_SHADER, inputs.computePath, inputs.computeSrc));
-    } else {
-        shaders.push_back(sgl::detail::compileShaderProgram(GL_VERTEX_SHADER, inputs.vertPath, inputs.vertSrc));
-        shaders.push_back(sgl::detail::compileShaderProgram(GL_FRAGMENT_SHADER, inputs.fragPath, inputs.fragSrc));
-        if (inputs.hasGeometryShader) {
-            shaders.push_back(sgl::detail::compileShaderProgram(GL_GEOMETRY_SHADER, inputs.geomPath, inputs.geomSrc));
-        }
-    }
-
-    for (const auto h : shaders) {
-        glAttachShader(prog, h);
-    }
-
-    glLinkProgram(prog);
-
-    for (const auto h : shaders) {
-        glDeleteShader(h);
-    }
-
-    GLint res;
-    glGetProgramiv(prog, GL_LINK_STATUS, &res);
-    if (res == GL_FALSE){
-        char msgbuf[200] = {0};
-        GLsizei len = 0;
-        glGetProgramInfoLog(prog, 200, &len, msgbuf);
-        int err = glGetError();
-        std::stringstream errMsg;
-        errMsg << "Got error code " << err << ":\n" << msgbuf;
-        throw std::runtime_error(errMsg.str());
-    }
-
-    return prog;
+Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath) {
+    auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
+    auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
+    return linkShaderStages(vs.get(),fs.get());
 }
 
-sgl::Shader sgl::loadShader (const std::string& computePath) {
-    std::ifstream cf(computePath);
-    std::string cSrc((std::istreambuf_iterator<char>(cf)), std::istreambuf_iterator<char>());
-    sgl::detail::ShaderInputs is(computePath, cSrc);
-    return { sgl::detail::compileAndLinkProgram(is) };
+Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath) {
+    auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
+    auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
+    auto gs = resource_guard(loadShaderStage<GL_GEOMETRY_SHADER>(geomPath));
+    return linkShaderStages(vs.get(),fs.get(),gs.get());
 }
 
-sgl::Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath) {
-    std::ifstream vf(vertPath);
-    std::string vertSrc((std::istreambuf_iterator<char>(vf)),
-                         std::istreambuf_iterator<char>());
-
-    std::ifstream ff(fragPath);
-    std::string fragSrc((std::istreambuf_iterator<char>(ff)),
-                         std::istreambuf_iterator<char>());
-
-    sgl::detail::ShaderInputs is(vertPath, vertSrc, fragPath, fragSrc);
-
-    return { sgl::detail::compileAndLinkProgram(is) };
+Shader sgl::compileShader (const std::string& computeSrc) {
+    auto stage = resource_guard(compileShaderStage<GL_COMPUTE_SHADER>(computeSrc));
+    return linkShaderStages(stage.get());
 }
 
-sgl::Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath) {
-    std::ifstream vf(vertPath);
-    std::string vertSrc((std::istreambuf_iterator<char>(vf)),
-                         std::istreambuf_iterator<char>());
-
-    std::ifstream ff(fragPath);
-    std::string fragSrc((std::istreambuf_iterator<char>(ff)),
-                         std::istreambuf_iterator<char>());
-
-    std::ifstream gf(geomPath);
-    std::string geomSrc((std::istreambuf_iterator<char>(gf)),
-                         std::istreambuf_iterator<char>());
-
-    sgl::detail::ShaderInputs is(vertPath, vertSrc, fragPath, fragSrc, geomPath, geomSrc);
-
-    return { sgl::detail::compileAndLinkProgram(is) };
+Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc) {
+    auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
+    auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
+    return linkShaderStages(vs.get(),fs.get());
 }
 
-
-sgl::Shader sgl::compileShader (const std::string& computeSrc) {
-    sgl::detail::ShaderInputs is("", computeSrc);
-    return { sgl::detail::compileAndLinkProgram(is) };
+Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc) {
+    auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
+    auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
+    auto gs = resource_guard(compileShaderStage<GL_GEOMETRY_SHADER>(geomSrc));
+    return linkShaderStages(vs.get(),fs.get(),gs.get());
 }
 
-sgl::Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc) {
-    sgl::detail::ShaderInputs is("", vertSrc, "", fragSrc);
-    return { sgl::detail::compileAndLinkProgram(is) };
-}
-
-sgl::Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc) {
-    sgl::detail::ShaderInputs is("", vertSrc, "", fragSrc, "", geomSrc);
-    return { sgl::detail::compileAndLinkProgram(is) };
-}
-
-GLint sgl::Shader::getLocation (const char * id) {
+GLint Shader::getLocation (const char * id) {
     GLint loc = glGetUniformLocation(_id, id);
     if (loc == GL_INVALID_VALUE) throw std::runtime_error("Invalid shader program");
     else if (loc == GL_INVALID_OPERATION) throw std::runtime_error("Supplied object is not a shader program");
@@ -238,19 +154,3 @@ void Shader::setUniformBlock(const char * id, GLResource<GL_UNIFORM_BUFFER>& buf
     glBindBufferBase(GL_UNIFORM_BUFFER, unit, static_cast<GLuint>(buffer));
     glUniformBlockBinding(_id, idx, unit);
 }
-
-//
-//GLint Shader::setTexture (std::string id, Texture * texture, int unit) {
-//    return setTexture(id, texture->getTarget(), texture->getHandle(), unit);
-//}
-//
-//GLint Shader::setTexture (std::string id, Texture& texture, int unit){
-//    return setTexture(id, texture.getTarget(), texture.getHandle(), unit);
-//}
-
-
-
-
-
-
-

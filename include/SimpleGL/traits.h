@@ -241,6 +241,16 @@ namespace traits {
     using IfShaderProgram = typename std::enable_if<traits::IsShaderProgram<v>::value, T>::type;
 
     template <GLenum v>
+    using IsShaderStage = traits::one_of_v<GLenum, v,
+        GL_COMPUTE_SHADER,
+        GL_VERTEX_SHADER,
+        GL_FRAGMENT_SHADER,
+        GL_GEOMETRY_SHADER>;
+
+    template <GLenum v, class T = GLenum>
+    using IfShaderStage = typename std::enable_if<traits::IsShaderStage<v>::value, T>::type;
+
+    template <GLenum v>
     using IsGLObject = traits::eval<
         IsShaderProgram<v>::value
       | IsBuffer<v>::value
