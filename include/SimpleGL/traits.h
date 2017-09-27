@@ -275,6 +275,18 @@ namespace traits {
     template<> struct GLType<double> { const static GLenum type = GL_DOUBLE; };
     template<> struct GLType<float> { const static GLenum type = GL_FLOAT; };
 
+    // Handle arrays
+    template <class T>
+    struct GLType<T[]>{ const static GLenum type = GLType<T>::type; };
+
+    // Handle Pointers
+    template <class T>
+    struct GLType<T*>{ const static GLenum type = GLType<T>::type; };
+
+    // Handle References
+    template <class T>
+    struct GLType<T&>{ const static GLenum type = GLType<T>::type; };
+
 #ifdef SGL_USE_GLM  
     template<> struct GLType<glm::vec2> { const static GLenum type = GL_FLOAT; };
     template<> struct GLType<glm::vec3> { const static GLenum type = GL_FLOAT; };
@@ -282,6 +294,9 @@ namespace traits {
     template<> struct GLType<glm::mat3> { const static GLenum type = GL_FLOAT; };
     template<> struct GLType<glm::mat4> { const static GLenum type = GL_FLOAT; };
 #endif
+
+    template <class T>
+    constexpr GLenum gl_type () { return GLType<T>::type; }
 
     // GL Type to C++ type
     template <GLenum T>
