@@ -20,13 +20,13 @@ int MeshBuilder::vertexCount () const {
 MeshResource::MeshResource (MeshData& data) :
     size(data.indices.size())
 {
-    auto bg = sgl::bind_guard(*this);
-
     sgl::bufferData(VBO, data.vertices, GL_STATIC_DRAW);
     sgl::bufferData(EBO, data.indices, GL_STATIC_DRAW);
 
     sgl::VertexAttribBuilder(*this)
-        .add<glm::vec3, glm::vec2, glm::vec3>(VBO);
+        .addElementBuffer(EBO)
+        .addBuffer<glm::vec3, glm::vec2, glm::vec3>(VBO)
+        .commit();
 }
 
 sgl::MeshResource sgl::createPlane (int divs) {

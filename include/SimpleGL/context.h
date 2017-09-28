@@ -155,6 +155,11 @@ public:
         return *this;
     }
 
+    ContextBuilder& setVisible (bool visible) {
+        _config.windowVisible = visible;
+        return *this;
+    }
+
     Context build () {
         return {_config};
     }

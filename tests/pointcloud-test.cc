@@ -40,7 +40,8 @@ int main () {
 
     sgl::VertexArray vao;
     sgl::vertexAttribBuilder(vao)
-        .add<glm::vec3, float>(pcb);
+        .addBuffer<glm::vec3, float>(pcb)
+        .commit();
     
     glViewport(0,0, ctx.attrs.width, ctx.attrs.height); 
     glClearColor(0,0,0,0);

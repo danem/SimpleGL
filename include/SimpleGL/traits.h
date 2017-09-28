@@ -11,8 +11,42 @@
 #endif
 
 namespace sgl {
+/**
+* A placeholder for most common vector types.
+* This allows use to define trait templates for most
+* vector types commonly in use. So instead of using GLType<glm::vec3>
+* or GLType<aiVector3D>, GLType<float[]>, etc, use this.
+*/
+
+    template <class T>
+    struct SGLVec2 { T values[2]; };
+
+    template <class T>
+    struct SGLVec3 { T values[3]; };
+
+    template <class T>
+    struct SGLVec4 { T values[4]; };
+
+    template <class T>
+    struct SGLMat3x3 { T values[9]; };
+
+    template <class T>
+    struct SGLMat4x4 { T values[16]; };
+
+    using vec2f = SGLVec2<float>;
+    using vec3f = SGLVec3<float>;
+    using vec4f = SGLVec4<float>;
+    using mat3f = SGLMat3x3<float>;
+    using mat4f = SGLMat4x4<float>;
+
+    using vec2d = SGLVec2<double>;
+    using vec3d = SGLVec3<double>;
+    using vec4d = SGLVec4<double>;
+    using mat3d = SGLMat3x3<double>;
+    using mat4d = SGLMat4x4<double>;
 
 namespace traits {
+
     template <class ...Ts>
     struct param_size;
 
@@ -274,6 +308,12 @@ namespace traits {
     template<> struct GLType<int> { const static GLenum type = GL_INT; };
     template<> struct GLType<double> { const static GLenum type = GL_DOUBLE; };
     template<> struct GLType<float> { const static GLenum type = GL_FLOAT; };
+
+    template <class T> struct GLType<SGLVec2<T>>   { const static GLenum type = GLType<T>::type; };
+    template <class T> struct GLType<SGLVec3<T>>   { const static GLenum type = GLType<T>::type; };
+    template <class T> struct GLType<SGLVec4<T>>   { const static GLenum type = GLType<T>::type; };
+    template <class T> struct GLType<SGLMat3x3<T>> { const static GLenum type = GLType<T>::type; };
+    template <class T> struct GLType<SGLMat4x4<T>> { const static GLenum type = GLType<T>::type; };
 
     // Handle arrays
     template <class T>

@@ -18,7 +18,8 @@ int main () {
     sgl::MeshResource mesh = sgl::createPlane();
 
     sgl::VertexAttribBuilder(mesh,3,1)
-        .add(offsetsBuf);
+        .addBuffer(offsetsBuf,1)
+        .commit();
 
     glViewport(0,0,ctx.attrs.width,ctx.attrs.height);
     while (ctx.isAlive()){

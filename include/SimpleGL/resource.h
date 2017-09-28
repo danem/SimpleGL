@@ -4,6 +4,7 @@
 #include "utils.h"
 
 #include <memory>
+#include <map>
 #include <iostream>
 #include <vector>
 #include <type_traits>
@@ -484,8 +485,11 @@ void bufferData (GLuint res, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRA
 }
 
 
-using VertexArray = GLResource<GL_VERTEX_ARRAY>;
+class VertexArray : public GLResource<GL_VERTEX_ARRAY> {
+};
+
 using MVertexArray = GLResourceM<VertexArray>;
+
 
 // VertexAttribBuilder is a helper class that simplifies the
 // initialization of Vertex Arrays. At compile time, it computes
@@ -499,58 +503,82 @@ using MVertexArray = GLResourceM<VertexArray>;
 //     sgl::ArrayBuffer<Vertex> verts;
 //     sgl::VertexArray vao;
 //     sgl::vertexAttribBuilder(vao)
-//         .add<float[3], float, float>(verts);
+//         .addBuffer<float[3], float, float>(verts)
+//         .commit();
 //
 
 class VertexAttribBuilder {
 
-public:
-    VertexArray& vao;
-    uint32_t attribs;
-    uint32_t buffers;
-    uint64_t offset;
+private:
+    GLResource<GL_VERTEX_ARRAY>& vao;
 
-    VertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0, uint32_t buffers = 0) :
+    // Total number of attribs used
+    uint32_t attribs;
+
+    // Total number of buffers attached
+    uint32_t buffers;
+
+    // Map from buffer to offset / stride to allow for attaching multiple buffers to a VAO
+    std::map<GLuint,uint64_t> offsets;
+    std::map<GLuint,uint64_t> strides;
+
+public:
+    VertexAttribBuilder (GLResource<GL_VERTEX_ARRAY>& vao, uint32_t attribs = 0, uint32_t buffers = 0) :
         vao(vao),
         attribs(attribs),
-        buffers(buffers),
-        offset(0)
-    {}
+        buffers(buffers)
+    {
+        vao.bind();
+    }
 
+    void commit () {
+        // TODO: Commit implies that the attributes are buffered, and only applied
+        // on commit. This might be the behavior later on.
+        vao.unbind();
+    }
+
+    VertexAttribBuilder& addElementBuffer (GLResource<GL_ELEMENT_ARRAY_BUFFER>& buffer) {
+        buffer.bind();
+        return *this;
+    }
+
+    // TODO: This API currently doesn't support non-normalized buffers.
+    // Not sure how to include it in the API.
     template <class T, class ...Ts>
-    VertexAttribBuilder& add (GLResource<GL_ARRAY_BUFFER>& res, bool normalized = false) {
-        auto bg = bind_guard(vao, vao.isBound());
-        addHelper<T,Ts...>(res, traits::param_size<T,Ts...>::size, normalized);
+    VertexAttribBuilder& addBuffer (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
+        strides[res] += traits::param_size<T,Ts...>::size;
+        addHelper<T,Ts...>(res, strides[res], div);
         buffers += 1;
         return *this;
     }
 
     template <class D, class T = D, class ...Ts>
-    VertexAttribBuilder& add (ArrayBuffer<D>& res, bool normalized = false) {
-        auto bg = bind_guard(vao, vao.isBound());
-        addHelper<T,Ts...>(res, traits::param_size<T,Ts...>::size, normalized);
+    VertexAttribBuilder& addBuffer (ArrayBuffer<D>& res, GLuint div = 0) {
+        strides[res] += traits::param_size<T,Ts...>::size;
+        addHelper<T,Ts...>(res, strides[res], div);
         buffers += 1;
         return *this;
     }
 
 private:
+
     // Private to allow for automatic stride calculation.
     template <class T, class T2, class ...Ts>
-    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
-        addHelper<T>(res,stride,normalized);
-        addHelper<T2,Ts...>(res,stride,normalized);
+    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, GLuint div, bool normalized = false) {
+        addHelper<T>(res,stride,normalized);        // apply attribute
+        addHelper<T2,Ts...>(res,stride,normalized); // recurse
     }
 
     template <class T>
-    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, bool normalized = false) {
+    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, GLuint div, bool normalized = false) {
         GLenum type = traits::GLType<T>::type;
         size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
         int components = sizeof(T) / elSize;
         res.bind();
         glEnableVertexAttribArray(attribs);
-        glVertexAttribPointer(attribs, components, type, SGL_BOOL(normalized), stride, (GLvoid*)offset);
-        glVertexAttribDivisor(attribs, buffers);
-        offset += sizeof(T);
+        glVertexAttribPointer(attribs, components, type, SGL_BOOL(normalized), stride, (GLvoid*)offsets[res]);
+        glVertexAttribDivisor(attribs, div);
+        offsets[res] += sizeof(T);
         attribs += 1;
         sglDbgCatchGLError();
     }
