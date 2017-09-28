@@ -621,6 +621,7 @@ private:
     }
 
     void addAttribute (const detail::VertexAttrib& attrib, GLint stride) {
+        glEnableVertexAttribArray(attrib.attrib);
         glVertexAttribPointer(attrib.attrib, attrib.components, attrib.type, GL_FALSE, stride, (GLvoid*)attrib.offset);
         glVertexAttribDivisor(attrib.attrib, attrib.div);
         sglDbgCatchGLError();
