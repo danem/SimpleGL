@@ -558,16 +558,17 @@ private:
     std::map<GLuint,uint64_t> offsets;
     std::map<GLuint,std::vector<detail::VertexAttrib>> attribQueues;
     std::set<GLuint> buffers;
+    GLuint ebo = 0;
 
 public:
     VertexAttribBuilder (GLResource<GL_VERTEX_ARRAY>& vao, uint32_t attribs = 0) :
         vao(vao),
         attribs(attribs)
-    {
-        vao.bind();
-    }
+    {}
 
     void commit () {
+        vao.bind();
+        if (ebo != 0) detail::GLInterface<GL_ELEMENT_ARRAY_BUFFER>::bind(GL_ELEMENT_ARRAY_BUFFER, ebo);
         for (const auto& b : buffers) {
             detail::GLInterface<GL_ARRAY_BUFFER>::bind(GL_ARRAY_BUFFER, b);
             for (const auto& attr : attribQueues[b]){
@@ -578,7 +579,7 @@ public:
     }
 
     VertexAttribBuilder& addElementBuffer (GLResource<GL_ELEMENT_ARRAY_BUFFER>& buffer) {
-        buffer.bind();
+        ebo = buffer;
         return *this;
     }
 
