@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <map>
+#include <set>
 #include <iostream>
 #include <vector>
 #include <type_traits>
@@ -533,34 +534,46 @@ using MVertexArray = GLResourceM<VertexArray>;
 *     builder.commit();
 */
 
+namespace detail {
+    struct VertexAttrib {
+        GLenum type;
+        size_t offset;
+        size_t elSize;
+        size_t components;
+        GLuint div;
+        uint32_t attrib;
+    };
+} // end namespace
+
 
 class VertexAttribBuilder {
-
 private:
     GLResource<GL_VERTEX_ARRAY>& vao;
 
     // Total number of attribs used
     uint32_t attribs;
 
-    // Total number of buffers attached
-    uint32_t buffers;
-
     // Map from buffer to offset / stride to allow for attaching multiple buffers to a VAO
+    std::map<GLuint,GLint> strides;
     std::map<GLuint,uint64_t> offsets;
-    std::map<GLuint,uint64_t> strides;
+    std::map<GLuint,std::vector<detail::VertexAttrib>> attribQueues;
+    std::set<GLuint> buffers;
 
 public:
-    VertexAttribBuilder (GLResource<GL_VERTEX_ARRAY>& vao, uint32_t attribs = 0, uint32_t buffers = 0) :
+    VertexAttribBuilder (GLResource<GL_VERTEX_ARRAY>& vao, uint32_t attribs = 0) :
         vao(vao),
-        attribs(attribs),
-        buffers(buffers)
+        attribs(attribs)
     {
         vao.bind();
     }
 
     void commit () {
-        // TODO: Commit implies that the attributes are buffered, and only applied
-        // on commit. This might be the behavior later on.
+        for (const auto& b : buffers) {
+            detail::GLInterface<GL_ARRAY_BUFFER>::bind(GL_ARRAY_BUFFER, b);
+            for (const auto& attr : attribQueues[b]){
+                addAttribute(attr, strides[b]);
+            }
+        }
         vao.unbind();
     }
 
@@ -574,45 +587,48 @@ public:
     template <class T, class ...Ts>
     VertexAttribBuilder& addBuffer (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
         strides[res] += traits::param_size<T,Ts...>::size;
-        addHelper<T,Ts...>(res, strides[res], div);
-        buffers += 1;
+        buffers.insert(res);
+        queueAttrib<T,Ts...>(res, div);
         return *this;
     }
 
     template <class D, class T = D, class ...Ts>
     VertexAttribBuilder& addBuffer (ArrayBuffer<D>& res, GLuint div = 0) {
         strides[res] += traits::param_size<T,Ts...>::size;
-        addHelper<T,Ts...>(res, strides[res], div);
-        buffers += 1;
+        buffers.insert(res);
+        queueAttrib<D,T,Ts...>(res, div);
         return *this;
     }
 
 private:
 
-    // Private to allow for automatic stride calculation.
     template <class T, class T2, class ...Ts>
-    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, GLuint div, bool normalized = false) {
-        addHelper<T>(res,stride,normalized);        // apply attribute
-        addHelper<T2,Ts...>(res,stride,normalized); // recurse
+    void queueAttrib (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
+        queueAttrib<T>(res,div);
+        queueAttrib<T2,Ts...>(res,div);
     }
 
     template <class T>
-    void addHelper (GLResource<GL_ARRAY_BUFFER>& res, int stride, GLuint div, bool normalized = false) {
+    void queueAttrib (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
         GLenum type = traits::GLType<T>::type;
         size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
-        int components = sizeof(T) / elSize;
-        res.bind();
-        glEnableVertexAttribArray(attribs);
-        glVertexAttribPointer(attribs, components, type, SGL_BOOL(normalized), stride, (GLvoid*)offsets[res]);
-        glVertexAttribDivisor(attribs, div);
+        size_t components = sizeof(T) / elSize;
+        attribQueues[res].push_back({
+            type, offsets[res], elSize, components, div, attribs
+        });
         offsets[res] += sizeof(T);
         attribs += 1;
+    }
+
+    void addAttribute (const detail::VertexAttrib& attrib, GLint stride) {
+        glVertexAttribPointer(attrib.attrib, attrib.components, attrib.type, GL_FALSE, stride, (GLvoid*)attrib.offset);
+        glVertexAttribDivisor(attrib.attrib, attrib.div);
         sglDbgCatchGLError();
     }
 };
 
-inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0, uint32_t buffers = 0){
-    return {vao,attribs,buffers};
+inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0){
+    return {vao,attribs};
 }
 
 // Thin wrapper around GL_FRAMEBUFFER. Provides functionality for attaching textures.

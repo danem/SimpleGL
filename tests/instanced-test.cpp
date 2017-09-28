@@ -17,7 +17,7 @@ int main () {
     sgl::ArrayBuffer<glm::vec2> offsetsBuf{offsets};
     sgl::MeshResource mesh = sgl::createPlane();
 
-    sgl::VertexAttribBuilder(mesh,3,1)
+    sgl::VertexAttribBuilder(mesh,3)
         .addBuffer(offsetsBuf,1)
         .commit();
 
