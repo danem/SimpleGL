@@ -491,21 +491,48 @@ class VertexArray : public GLResource<GL_VERTEX_ARRAY> {
 using MVertexArray = GLResourceM<VertexArray>;
 
 
-// VertexAttribBuilder is a helper class that simplifies the
-// initialization of Vertex Arrays. At compile time, it computes
-// the correct GL types, offsets, strides, and sizes to correctly
-// access a buffer in GLSL.
-//
-// eg:
-// The following code creates a VertexArray and creates three attributes
-//
-//     struct Vertex { float fields[5]; };
-//     sgl::ArrayBuffer<Vertex> verts;
-//     sgl::VertexArray vao;
-//     sgl::vertexAttribBuilder(vao)
-//         .addBuffer<float[3], float, float>(verts)
-//         .commit();
-//
+/**
+* VertexAttribBuilder is a helper class that simplifies the
+* initialization of Vertex Arrays. At compile time, it computes
+* the correct GL types, offsets, strides, and sizes to correctly
+* access a buffer in GLSL.
+*
+* eg:
+* The following code creates a VertexArray and creates three attributes
+*
+*     struct Vertex { float fields[5]; };
+*     sgl::ArrayBuffer<Vertex> verts;
+*     sgl::VertexArray vao;
+*     sgl::vertexAttribBuilder(vao)
+*         .addBuffer<float[3], float, float>(verts)
+*         .commit();
+* eg:
+* Non interleaved attributes
+*
+*     sgl::ArrayBuffer<float> vertBuf{verts};
+*     sgl::ArrayBuffer<float> uvBuf{uvs};
+*     sgl::ElementArrayBuffer<> elBuf{idxs};
+*     sgl::VertexArray vao;
+*     sgl::vertexAttribBuilder(vao)
+*         .addElementBuffer(elBuf)
+*         .addBuffer<sgl::vec3f>(vertBuf)
+*         .addBuffer<sgl::vec2f>(uvBuf)
+*         .commit();
+*
+* eg:
+* Optional attributes
+*
+*     sgl::ArrayBuffer<float> vertBuf{verts};
+*     sgl::VertexArray vao;
+*
+*     sgl::VertexAttribBuilder builder(vao);
+*     builder.addBuffer<sgl::vec3f>(vertBuf);
+*     if (hasUVs)   builder.addBuffer<sgl::vec2f>(vertBuf);
+*     if (hasNorms) builder.addBuffer<sgl::vec3f>(vertBuf);
+*     if (hasColor) builder.addBuffer<sgl::vec4f>(vertBuf);
+*     builder.commit();
+*/
+
 
 class VertexAttribBuilder {
 
