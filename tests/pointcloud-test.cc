@@ -36,7 +36,8 @@ int main () {
     std::vector<glm::vec4> pts;
     generatePointCloud(500,pts);
 
-    sgl::ArrayBuffer<glm::vec4> pcb{pts};
+    sgl::ArrayBuffer<sgl::vec4f> pcb;
+    sgl::bufferData(pcb, pts);
 
     sgl::VertexArray vao;
     sgl::vertexAttribBuilder(vao)

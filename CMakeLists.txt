@@ -68,6 +68,7 @@ set(SOURCE_FILES
     ${SOURCE_DIR}/event.cc
     ${SOURCE_DIR}/mesh.cc
     ${SOURCE_DIR}/shader.cc
+    ${SOURCE_DIR}/texture.cc
     ${SOURCE_DIR}/traits.cc
     ${SOURCE_DIR}/transform.cc
     ${SOURCE_DIR}/utils.cc

@@ -5,8 +5,6 @@
 #include "utils.h"
 #include <iostream>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "contrib/stb_image.h"
 
 namespace sgl {
 
@@ -142,6 +140,9 @@ namespace detail {
             return static_cast<T&>(*this);
         }
     };
+
+    unsigned char * loadTexture2D (const char * path, int * width, int * height, int * channels);
+    void freeTexture2D (unsigned char * data);
 } // end namespace
 
 /**
@@ -245,10 +246,10 @@ public:
 
     Texture<kind> build (const char * imagename) {
         int width, height, channels;
-        unsigned char* data = stbi_load(imagename, &width, &height, &channels, 0);
+        unsigned char* data = detail::loadTexture2D(imagename, &width, &height, &channels);
         detail::GLTextureInfo<kind> info(width, height, this->_info);
         Texture<kind> tex(data,info);
-        stbi_image_free(data);
+        detail::freeTexture2D(data);
         return tex;
     }
 

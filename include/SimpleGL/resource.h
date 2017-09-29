@@ -402,6 +402,9 @@ detail::BufferView<D, R::type> buffer_view (R&& res, size_t start, size_t len, G
 
 // GLBuffer is a very thin layer over GLResource that brings type safety to
 // OpenGL buffer objects. GLBuffer adds no additional overhead to GLResource.
+
+ // TODO: Create GLBufferMut which initializes itself with glBufferData whereas GLBuffer
+// is initialized with GLBufferStorage
 template <GLenum kind, class T>
 class GLBuffer : public GLResource<kind> {
 public:
@@ -449,21 +452,24 @@ template <class T> using MUniformBuffer = GLResourceM<UniformBuffer<T>>;
 
 template <class R, class D>
 void bufferData (R&& res, std::vector<D>& data, GLenum usage = GL_DYNAMIC_DRAW) {
-    static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    using M = typename std::remove_reference<R>::type;
+    static_assert(traits::IsBuffer<M::type>::value, "GLResource target must be buffer");
     bufferData(res,&data[0],data.size(),usage);
 }
 
 template <class R, class D, size_t Size>
 void bufferData (R&& res, std::array<D,Size>& data, GLenum usage = GL_DYNAMIC_DRAW) {
-    static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
+    using M = typename std::remove_reference<R>::type;
+    static_assert(traits::IsBuffer<M::type>::value, "GLResource target must be buffer");
     bufferData(res,&data[0],Size,usage);
 }
 
 template <class R, class D>
 void bufferData (R&& res, D* data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
-    static_assert(traits::IsBuffer<R::type>::value, "GLResource target must be buffer");
-    detail::GLInterface<R::type>::bind(R::type, static_cast<GLuint>(res));
-    glBufferData(R::type, len * sizeof(D), data, usage);
+    using M = typename std::remove_reference<R>::type;
+    static_assert(traits::IsBuffer<M::type>::value, "GLResource target must be buffer");
+    detail::GLInterface<M::type>::bind(M::type, static_cast<GLuint>(res));
+    glBufferData(M::type, len * sizeof(D), data, usage);
 }
 
 template <GLenum kind, class D>
@@ -507,6 +513,7 @@ using MVertexArray = GLResourceM<VertexArray>;
 *     sgl::vertexAttribBuilder(vao)
 *         .addBuffer<float[3], float, float>(verts)
 *         .commit();
+*
 * eg:
 * Non interleaved attributes
 *
@@ -529,8 +536,11 @@ using MVertexArray = GLResourceM<VertexArray>;
 *     sgl::VertexAttribBuilder builder(vao);
 *     builder.addBuffer<sgl::vec3f>(vertBuf);
 *     if (hasUVs)   builder.addBuffer<sgl::vec2f>(vertBuf);
+*     else          builder.skip<sgl::vec2f>(vertBuf);
 *     if (hasNorms) builder.addBuffer<sgl::vec3f>(vertBuf);
+*     else          builder.skip<sgl::vec3f>(vertBuf);
 *     if (hasColor) builder.addBuffer<sgl::vec4f>(vertBuf);
+*     else          builder.skip<sgl::vec4f>(vertBuf);
 *     builder.commit();
 */
 
@@ -543,9 +553,36 @@ namespace detail {
         GLuint div;
         uint32_t attrib;
     };
+
+    struct VertexAttribNew {
+        GLenum type;
+        size_t offset;
+        size_t elSize;
+        size_t components;
+        GLuint div;
+    };
+
+    struct VertexAttribBuffer {
+        size_t stride;
+        size_t offset;
+        std::vector<VertexAttribNew> attribs;
+    };
+
+    template <class T>
+    VertexAttribNew makeVertexAttrib (size_t offset, GLuint div = 0) {
+        GLenum type = traits::GLType<T>::type;
+        size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
+        size_t components = sizeof(T) / elSize;
+        return { type, offset, elSize, components, div };
+    }
 } // end namespace
 
+// TODO: This approach makes it impossible to
+// skip elements of a interleaved vbo. Current work around
+// is to add a skip function, which isn't pretty, but it works...
 
+// TODO: Rework this to use VertexAttribNew and VertexAttribBuffer. It's
+// more elegant, more flexible, and more performant.
 class VertexAttribBuilder {
 private:
     GLResource<GL_VERTEX_ARRAY>& vao;
@@ -566,6 +603,9 @@ public:
         attribs(attribs)
     {}
 
+    /**
+    * @brief commit Perform vertex array configuration.
+    */
     void commit () {
         vao.bind();
         if (ebo != 0) detail::GLInterface<GL_ELEMENT_ARRAY_BUFFER>::bind(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -578,13 +618,22 @@ public:
         vao.unbind();
     }
 
+    /**
+     * @brief addElementBuffer Set VAO's element array buffer
+     * @param buffer
+     * @return VertexAttribBuilder refernece
+     */
     VertexAttribBuilder& addElementBuffer (GLResource<GL_ELEMENT_ARRAY_BUFFER>& buffer) {
         ebo = buffer;
         return *this;
     }
 
+
+
     // TODO: This API currently doesn't support non-normalized buffers.
     // Not sure how to include it in the API.
+
+
     template <class T, class ...Ts>
     VertexAttribBuilder& addBuffer (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
         strides[res] += traits::param_size<T,Ts...>::size;
@@ -598,6 +647,26 @@ public:
         strides[res] += traits::param_size<T,Ts...>::size;
         buffers.insert(res);
         queueAttrib<D,T,Ts...>(res, div);
+        return *this;
+    }
+
+    // TODO: Hack to support skipping vertices in interleaved vertex buffer.
+    // Rework the interface a bit to add a more expressive, flexible data type
+    // that allows the user to manually specify everything.
+    template <class T>
+    VertexAttribBuilder& skip (GLResource<GL_ARRAY_BUFFER>& res) {
+        strides[res] += sizeof(T);
+        offsets[res] += sizeof(T);
+        return *this;
+    }
+
+    VertexAttribBuilder& reset () {
+        buffers.clear();
+        strides.empty();
+        offsets.empty();
+        attribQueues.empty();
+        ebo = 0;
+        attribs = 0;
         return *this;
     }
 
