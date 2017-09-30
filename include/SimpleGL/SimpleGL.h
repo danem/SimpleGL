@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sglconfig.h"
+#include "utils.h"
 
 #include "camera.h"
 #include "context.h"
@@ -13,4 +14,3 @@
 #include "texture.h"
 #include "traits.h"
 #include "transform.h"
-#include "utils.h"

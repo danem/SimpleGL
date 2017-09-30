@@ -6,6 +6,35 @@
 #include <sstream>
 #include <stdio.h>
 
+
+#define sglDbgPrint(...) do { printf("%s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); } while(0);
+
+#ifdef SGL_DEBUG
+#    define sglDbgCatchGLError() _sglGetGLError(false)
+#    define sglDgbLog(...) sglDbgPrint(__VA_ARGS__)
+#else
+#    define sglDbgCatchGLError()
+#    define sglDbgLog(...)
+#endif
+
+#if (SGL_DEBUG >= 1)
+#   define sglDbgLogInfo(...) sglDbgPrint(__VA_ARGS__)
+#else
+#   define sglDbgLogInfo(...)
+#endif
+
+#if (SGL_DEBUG >= 2)
+#   define sglDbgLogVerbose(...) sglDbgPrint(__VA_ARGS__)
+#else
+#   define sglDbgLogVerbose(...)
+#endif
+
+#if (SGL_DEBUG >= 3)
+#   define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
+#else
+#   define sglDbgLogVerbose2(...)
+#endif
+
 #define _sglGetGLError(ignore) do {\
        GLenum err = glGetError();\
        if (err != GL_NO_ERROR) {\
@@ -19,29 +48,6 @@
 #define sglCheckGLError() _sglGetGLError(true)
 #define sglClearGLError() glGetError()
 #define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
-
-
-#ifdef SGL_DEBUG
-#    define sglDbgCatchGLError() _sglGetGLError(false)
-#    define sglDgbLog(...) do { printf(__VA_ARGS__); } while(0);
-#else
-#    define sglDbgCatchGLError()
-#    define sglDgbLog(...)
-#endif
-
-#if SGL_DEBUG >= 2
-#    define sglDgbLogVerbose(...) sglDbgLog(__VA_ARGS__)
-#    define sglDgbLogWarn(...) sglDgbLog(__VA_ARGS__)
-#    define sglDbgLogInfo(...) sglDbgLog(__VA_ARGS__)
-#elif SGL_DEBUG >= 1
-#    define sglDgbLogVerbose(...)
-#    define sglDgbLogWarn(...) sglDgbLog(__VA_ARGS__)
-#    define sglDbgLogInfo(...) sglDbgLog(__VA_ARGS__)
-#else
-#    define sglDgbLogVerbose(...)
-#    define sglDgbLogWarn(...)
-#    define sglDbgLogInfo(...)
-#endif
 
 namespace sgl {
 namespace util {

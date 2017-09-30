@@ -46,6 +46,7 @@ endif()
 
 set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/SimpleGL.h
+    ${INCLUDE_DIR}/SimpleGL/utils.h
     ${INCLUDE_DIR}/SimpleGL/camera.h
     ${INCLUDE_DIR}/SimpleGL/context.h
     ${INCLUDE_DIR}/SimpleGL/contrib/stb_image.h
@@ -59,7 +60,6 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/texture.h
     ${INCLUDE_DIR}/SimpleGL/traits.h
     ${INCLUDE_DIR}/SimpleGL/transform.h
-    ${INCLUDE_DIR}/SimpleGL/utils.h
 )
 
 set(SOURCE_FILES

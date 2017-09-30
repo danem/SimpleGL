@@ -117,45 +117,67 @@ namespace detail {
 template <GLenum kind>
 class GLResource {
 protected:
-    bool _isBound;
     GLuint _id;
 
 public:
     static const GLenum type = kind;
 
-    GLResource () : 
-        _isBound(false)
-    {
+    GLResource ()  {
         detail::GLInterface<kind>::create(1, &_id);
+        sglDbgLogVerbose2("created resource %d:%d\n", kind, _id);
     }
 
     GLResource (GLuint res) :
-        _isBound(false),
         _id(res)
     {}
 
     operator GLuint() const { return _id; }
 
     void bind () {
-        //if (_isBound) return;
         detail::GLInterface<kind>::bind(kind, _id);
-        _isBound = true;
+        sglDbgLogVerbose2("bound resource %d:%d\n", kind, _id);
     }
 
     void unbind () {
-        //if (!_isBound) return;
         detail::GLInterface<kind>::bind(kind, 0);
-        _isBound = false;
-    }
-
-    bool isBound () {
-        return _isBound;
+        sglDbgLogVerbose2("unbound resource %d:%d\n", kind, _id);
     }
 
     void release () {
         detail::GLInterface<kind>::destroy(1, &_id);
+        sglDbgLogVerbose2("released resource %d:%d\n", kind, _id);
     }
 };
+
+template <GLenum kind>
+void bind (GLuint res){
+    detail::GLInterface<kind>::bind(kind,res);
+}
+
+template <GLenum kind>
+void bind (GLResource<kind>& res){
+    detail::GLInterface<kind>::bind(kind,res);
+}
+
+template <GLenum kind>
+void bind (GLResource<kind>&& res){
+    detail::GLInterface<kind>::bind(kind,res);
+}
+
+template <GLenum kind>
+void unbind (){
+    detail::GLInterface<kind>::bind(kind,0);
+}
+
+template <GLenum kind>
+void unbind (GLResource<kind>& res){
+    detail::GLInterface<kind>::bind(kind,0);
+}
+
+template <GLenum kind>
+void unbind (GLResource<kind>&& res){
+    detail::GLInterface<kind>::bind(kind,0);
+}
 
 template <GLenum kind>
 class GLResourceArray {
@@ -337,6 +359,7 @@ namespace detail {
             _res(res)
         {
             // TODO: Benchmark glMapBuffer vs glMapBufferRange
+            sglDbgLogVerbose("Mapping buffer: %d:%d\n", kind, _res);
             detail::GLInterface<kind>::bind(kind,_res);
             _data = static_cast<D*>(glMapBuffer(kind, access));
         }
@@ -345,13 +368,15 @@ namespace detail {
             _res(res)
         {
             // TODO: Benchmark glMapBuffer vs glMapBufferRange
+            sglDbgLogVerbose("Mapping buffer: %d:%d\n", kind, _res);
             detail::GLInterface<kind>::bind(kind,_res);
             _data = static_cast<D*>(glMapBufferRange(kind, start, len, access));
+            sglDbgCatchGLError();
         }
 
 
         ~BufferView () {
-            commit();
+            if (_data != nullptr) commit();
         }
 
         D& operator[] (size_t idx) {
@@ -369,11 +394,13 @@ namespace detail {
         }
 
         void commit () {
-            detail::GLInterface<kind>::bind(kind,_res);
+            sgl::bind<kind>(_res);
+            sglDbgLogVerbose("Unmapping buffer %d:%d\n", kind, _res);
             glUnmapBuffer(kind);
-            detail::GLInterface<kind>::bind(kind,0);
-            _data = nullptr;
             sglDbgCatchGLError();
+            sgl::unbind<kind>();
+            sglDbgCatchGLError();
+            _data = nullptr;
         }
 
     };
@@ -436,6 +463,15 @@ public:
     GLBuffer (T&& data, GLenum usage = GL_DYNAMIC_DRAW ) : GLResource<kind> ()
     {
         bufferData(*this, &data, 1, usage);
+    }
+
+    GLBuffer (size_t length, GLenum usage = GL_DYNAMIC_DRAW) : GLResource<kind>()
+    {
+        bufferData(*this, nullptr, sizeof(T) * length, usage);
+    }
+
+    void resize (size_t bytes, GLenum usage = GL_DYNAMIC_DRAW) {
+        bufferData(*this, NULL, bytes, usage);
     }
 };
 
