@@ -48,11 +48,15 @@
 #define SGL_OPENGL_VER(major,minor) ((SGL_OPENGL_MAX_MAJOR >= major) && (SGL_OPENGL_MAX_MINOR >= minor))
 
 #if SGL_OPENGL_VER(4,4)
-#   define SGL_BUFFERSTORAGE_SUPPORTED
+#   define SGL_BUFFERSTORAGE_SUPPORTED 1
+#endif
+
+#if SGL_OPENGL_VER(4,1)
+#   define SGL_PROGRAMPIPELINES_SUPPORTED 1
 #endif
 
 #if SGL_OPENGL_VER(3,0)
-#   define SGL_RENDERBUFFER_SUPPORTED
+#   define SGL_RENDERBUFFER_SUPPORTED 1
 #endif
 
 namespace sgl {

@@ -77,7 +77,8 @@ set(SOURCE_FILES
 
 set(OTHER_FILES
     README.md
-    docs/lifetimes.md)
+    docs/lifetimes.md
+    TODO.md)
 
 
 #find_package(SOIL REQUIRED)
