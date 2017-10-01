@@ -12,13 +12,13 @@
 
 #ifdef SGL_DEBUG_STATS
 sgl::util::detail::SGL_DEBUG_STATS __sglDebugStats__;
-#   define sglDbgMarkCreation(kind,count,dest) do { __sglDebugStats__.resources[kind].count += count; } while(0);
-#   define sglDbgMarkDeletion(kind,count,dest) do { __sglDebugStats__.resources[kind].count -= count; } while(0);
-#   define sglDbgMarkBind(kind,id)  do { __sglDebugStats__.resources[kind].bound += (id == 0 ? -1 : 1); } while(0);
+#   define sglDbgRecordCreation(kind,count,dest) do { __sglDebugStats__.resources[kind].count += count; } while(0);
+#   define sglDbgRecordDeletion(kind,count,dest) do { __sglDebugStats__.resources[kind].count -= count; } while(0);
+#   define sglDbgRecordBind(kind,id)  do { __sglDebugStats__.resources[kind].bound += (id == 0 ? -1 : 1); } while(0);
 #else
-#   define sglDbgMarkCreation(kind,count,dest)
-#   define sglDbgMarkDeletion(kind,count,dest)
-#   define sglDbgMarkBind(kind,id)
+#   define sglDbgRecordCreation(kind,count,dest)
+#   define sglDbgRecordDeletion(kind,count,dest)
+#   define sglDbgRecordBind(kind,id)
 #endif
 
 #ifdef SGL_DEBUG
@@ -43,17 +43,14 @@ sgl::util::detail::SGL_DEBUG_STATS __sglDebugStats__;
 
 #if (SGL_DEBUG >= 3)
 #   define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
-#   define sglDbgLogCreation(kind,count,dest) do { sglDbgMarkCreation(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("created resource %d:%d\n",kind,dest[i]); }} while(0);
-#   define sglDbgLogDeletion(kind,count,dest) do { sglDbgMarkDeletion(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("deleted resource %d:%d\n",kind,dest[i]); }} while(0);
-#   define sglDbgLogBind(kind,id) do { sglDbgMarkBind(kind,id); sglDbgPrint("bound resource %d:%d\n",kind,id); } while(0);
+#   define sglDbgLogCreation(kind,count,dest) do { sglDbgRecordCreation(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("created resource %d:%d\n",kind,dest[i]); }} while(0);
+#   define sglDbgLogDeletion(kind,count,dest) do { sglDbgRecordDeletion(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("deleted resource %d:%d\n",kind,dest[i]); }} while(0);
+#   define sglDbgLogBind(kind,id) do { sglDbgRecordBind(kind,id); sglDbgPrint("bound resource %d:%d\n",kind,id); } while(0);
 #else
 #   define sglDbgLogVerbose2(...)
-#   define sglDbgLogCreation(kind,count,dest) sglDbgMarkCreation(kind,count,dest);
-#   define sglDbgLogDeletion(kind,count,dest) sglDbgMarkDeletion(kind,count,dest);
-#   define sglDbgLogBind(kind,id) sglDbgMarkBind(kind,id);
-#endif
-
-#else
+#   define sglDbgLogCreation(kind,count,dest) sglDbgRecordCreation(kind,count,dest);
+#   define sglDbgLogDeletion(kind,count,dest) sglDbgRecordDeletion(kind,count,dest);
+#   define sglDbgLogBind(kind,id) sglDbgRecordBind(kind,id);
 #endif
 
 #define _sglGetGLError(ignore) do {\
