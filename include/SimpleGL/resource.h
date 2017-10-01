@@ -84,6 +84,61 @@ namespace detail {
         static void destroy (int len, GLuint* dest) { __glDeleteProgram(len,dest); sglDbgLogDeletion(kind,len,dest);}
         static void bind (GLuint id) { __glUseProgram(kind,id); sglDbgLogBind(kind,id);}
     };
+
+#if SGL_RENDERBUFFER_SUPPORTED
+    template <>
+    struct GLInterface<GL_RENDERBUFFER, GLenum>{
+        static void create (int len, GLuint* dest) { glGenRenderbuffers(len,dest); sglDbgLogCreation(kind,len,dest); }
+        static void destroy (int len, GLuint* dest) { glDeleteRenderbuffers(len,dest); sglDbgLogDeletion(kind,len,dest); }
+        static void bind (GLuint id) { glBindRenderbuffer(kind,id); sglDbgLogBind(kind,id); }
+    };
+#endif
+
+
+#ifdef SGL_BUFFERSTORAGE_SUPPORTED
+    static GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+    using UsageType = GLbitfield;
+#else
+    static GLenum SGL_RW = GL_READ_WRITE;
+    using UsageType = GLenum;
+#endif
+
+    template <GLenum kind, class T = GLenum>
+    struct GLBufferInterface;
+
+    template <GLenum kind>
+    struct GLBufferInterface<kind, traits::IfBuffer<kind>> {
+        void initialize (GLuint res, const char * data, size_t len, UsageType usage) {
+            #ifdef SGL_BUFFERSTORAGE_SUPPORTED
+                    glBufferStorage(kind, len, data, usage);
+            #else
+                    glBufferData(kind,len,data,usage);
+            #endif
+            sglDbgLogVerbose("Initializing immutable buffer %d:%d size: %lu", kind, res, len);
+        }
+
+        void initializeMut (GLuint res, const char * data, size_t len, GLenum usage) {
+            glBufferData(kind,len,data,usage);
+            sglDbgLogVerbose("Initializing mutable buffer %d:%d size: %lu", kind, res, len);
+        }
+
+        void update (GLuint res, const char * data, size_t start, size_t len) {
+            glBufferSubData(kind,start,len,data);
+            sglDbgLogVerbose("Writing range %lu:%lu bytes to %d:%d", start, start+len, kind, res);
+        }
+    };
+#ifdef SGL_RENDERBUFFER_SUPPORTED
+    template <GLenum kind>
+    struct GLBufferInterface<kind, traits::IfRenderBuffer<kind>> {
+
+
+
+    };
+#endif
+
+
+
+
 } // end namespace
 
 template <GLenum kind>
@@ -281,37 +336,6 @@ ResourceGuard<kind> resource_guard (GLResource<kind>& res) { return {res}; }
 template <GLenum kind>
 ResourceGuard<kind> resource_guard (GLResource<kind>&& res) { return {res}; }
 
-namespace detail {
-
-#if SGL_OPENGL_VER(4,4)
-    static GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-    using UsageType = GLbitfield;
-#else
-    static GLenum SGL_RW = GL_READ_WRITE;
-    using UsageType = GLenum;
-#endif
-
-    template <GLenum kind>
-    void initializeBuffer (GLuint res, const char * data, size_t len, UsageType usage) {
-        sgl::bind<kind>(res);
-#if SGL_OPENGL_VER(4,4)
-        glBufferStorage(kind, len, data, usage);
-#else
-        glBufferData(kind,len,data,usage);
-#endif
-        sglDbgLogVerbose("Initializing immutable buffer %d:%d size: %lu", kind, res, len);
-    }
-
-    template <GLenum kind>
-    void initializeBufferMut (GLuint res, const char * data, size_t len, GLenum usage) {
-        sgl::bind<kind>(res);
-        glBufferData(kind,len,data,usage);
-        sglDbgLogVerbose("Initializing mutable buffer %d:%d size: %lu", kind, res, len);
-    }
-
-
-} // end namespace
-
 // TODO: decide whether to keep track of buffer size. This could help
 // make code cleaner and mode concise, as well as potentially allowing
 // for some optimizations. For example, if we knew the size we could
@@ -334,24 +358,24 @@ public:
     GLBuffer (const std::vector<T>& data, detail::UsageType flags = detail::SGL_RW) :
         GLResource<kind>()
     {
-        detail::initializeBuffer<kind>(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * data.size(), flags);
+        detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * data.size(), flags);
     }
 
     template <size_t len>
     GLBuffer (const std::array<T,len>& data, detail::UsageType flags = detail::SGL_RW) :
         GLResource<kind>()
     {
-        detail::initializeBuffer<kind>(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * len, flags);
+        detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * len, flags);
     }
 
     GLBuffer (const T* data, size_t len, detail::UsageType flags = detail::SGL_RW) :
         GLResource<kind>()
     {
-        detail::initializeBuffer<kind>(this->_id, reinterpret_cast<const char*>(data), sizeof(T) * len, flags);
+        detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(data), sizeof(T) * len, flags);
     }
 
     void reserve (size_t count, detail::UsageType flags = detail::SGL_RW) {
-        detail::initializeBuffer<kind>(this->_id, NULL, sizeof(T) * count, flags);
+        detail::GLBufferInterface<kind>::initialize(this->_id, NULL, sizeof(T) * count, flags);
     }
 };
 
@@ -369,30 +393,39 @@ public:
     GLBufferMut (const std::vector<T>& data, GLenum usage = GL_READ_WRITE) :
         GLResource<kind>()
     {
-        detail::initializeBufferMut(*this, reinterpret_cast<char*>(&data[0]), sizeof(T) * data.size(), usage);
+        detail::GLBufferInterface<kind>::initializeMut(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * data.size(), usage);
     }
 
     template <size_t len>
     GLBufferMut (const std::array<T,len>& data, GLenum usage = GL_READ_WRITE) :
         GLResource<kind>()
     {
-        detail::initializeBufferMut(*this, reinterpret_cast<char*>(&data[0]), sizeof(T) * len, usage);
+        detail::GLBufferInterface<kind>::initializeMut(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * len, usage);
     }
 
     GLBufferMut (const T* data, size_t len, GLenum usage = GL_READ_WRITE) :
         GLResource<kind>()
     {
-        detail::initializeBufferMut(*this, reinterpret_cast<char*>(data), sizeof(T) * len, usage);
+        detail::GLBufferInterface<kind>::initializeMut(this->_id, reinterpret_cast<const char*>(data), sizeof(T) * len, usage);
     }
 
     void reserve (size_t count, GLenum usage = GL_READ_WRITE) {
-        detail::initializeBufferMut(*this, NULL, sizeof(T) * count, usage);
+        detail::GLBufferInterface<kind>::initializeMut(this->_id, NULL, sizeof(T) * count, usage);
     }
 
     void resize (size_t count, GLenum usage = GL_READ_WRITE) {
-        detail::initializeBufferMut(*this, NULL, sizeof(T) * count, usage);
+        detail::GLBufferInterface<kind>::initializeMut(this->_id, NULL, sizeof(T) * count, usage);
     }
 };
+
+using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
+using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;
+using QueryBuffer        = GLResource<GL_QUERY_BUFFER>;
+
+template <class T>
+using UniformBuffer      = GLBuffer<GL_UNIFORM_BUFFER, T>;
+
+using RenderBuffer       = GLResource<GL_RENDERBUFFER>;
 
 namespace detail {
     // BufferView abstracts over a mapped buffer, allowing for safe and
@@ -731,32 +764,35 @@ inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attri
     return {vao,attribs};
 }
 
-// Thin wrapper around GL_FRAMEBUFFER. Provides functionality for attaching textures.
-class Framebuffer : public GLResource<GL_FRAMEBUFFER> {
+// Thin wrapper around GL_FRAMEBUFFER. Provides functionality for attaching textures and renderbuffers
+template <GLenum kind>
+class Framebuffer : public GLResource<kind> {
+    static_assert(traits::IsFramebuffer<kind>::value, "Not valid framebuffer target");
 public:
     Framebuffer () :
-        GLResource<GL_FRAMEBUFFER>()
+        GLResource<kind>()
     {}
 
-    template <GLenum kind>
-    traits::IfTex1D<kind,void> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
-        auto bg = bind_guard(*this);
-        glFramebufferTexture1D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
+    template <GLenum res>
+    traits::IfTex1D<res,void> attachTexture (GLResource<res>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+        this->bind();
+        glFramebufferTexture1D(kind, attachment, res, (GLuint)texture, 0);
     }
 
-    template <GLenum kind>
-    traits::IfTex2D<kind,void> attachTexture (GLResource<kind>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
-        auto bg = bind_guard(*this);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, kind, (GLuint)texture, 0);
+    template <GLenum res>
+    traits::IfTex2D<res,void> attachTexture (GLResource<res>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+        this->bind();
+        glFramebufferTexture2D(kind, attachment, res, (GLuint)texture, 0);
     }
+
+#ifdef SGL_RENDERBUFERR_SUPPORTED
+    void attachRenderBuffer (RenderBuffer& buffer, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+        this->bind();
+        glFramebufferRenderbuffer(kind, attachment, buffer.type, buffer);
+    }
+#endif
 };
 
-using PackBuffer         = GLResource<GL_PIXEL_PACK_BUFFER>;
-using UnpackBuffer       = GLResource<GL_PIXEL_UNPACK_BUFFER>;
-using QueryBuffer        = GLResource<GL_QUERY_BUFFER>;
-
-template <class T>
-using UniformBuffer      = GLBuffer<GL_UNIFORM_BUFFER, T>;
 
 } // end namespace
 

@@ -47,6 +47,14 @@
 
 #define SGL_OPENGL_VER(major,minor) ((SGL_OPENGL_MAX_MAJOR >= major) && (SGL_OPENGL_MAX_MINOR >= minor))
 
+#if SGL_OPENGL_VER(4,4)
+#   define SGL_BUFFERSTORAGE_SUPPORTED
+#endif
+
+#if SGL_OPENGL_VER(3,0)
+#   define SGL_RENDERBUFFER_SUPPORTED
+#endif
+
 namespace sgl {
 namespace detail {
 
