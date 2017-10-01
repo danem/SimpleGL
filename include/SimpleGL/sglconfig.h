@@ -37,7 +37,6 @@
 #   include <GL/glu.h>
 #endif
 
-
 #ifndef SGL_OPENGL_MAX_MAJOR
 #   define SGL_OPENGL_MAX_MAJOR 3
 #endif
