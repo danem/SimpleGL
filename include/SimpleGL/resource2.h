@@ -272,8 +272,17 @@ template <GLenum kind>
 ResourceGuard<kind> resource_guard (GLResource<kind>& res) { return {res}; }
 
 namespace detail {
+
+#if SGL_OPENGL_VER(4,4)
+    GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+    using UsageType = typename GLbitfield;
+#else
+    GLenum SGL_RW = GL_READ_WRITE;
+    using UsageType = typename GLenum;
+#endif
+
     template <GLenum kind>
-    void initializeBuffer (GLuint res, const char * data, size_t len, GLenum usage) {
+    void initializeBuffer (GLuint res, const char * data, size_t len, UsageType usage) {
         sgl::bind<kind>(res);
 #if SGL_OPENGL_VER(4,4)
         glBufferStorage(kind, len, data, usage);
@@ -290,11 +299,6 @@ namespace detail {
         sglDbgLogVerbose("Initializing mutable buffer %d:%d size: %lu", kind, res, len);
     }
 
-#if SGL_OPENGL_VER(4,4)
-    GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
-#else
-    GLenum SGL_RW = GL_READ_WRITE;
-#endif
 
 } // end namespace
 
@@ -317,26 +321,26 @@ public:
     GLBuffer () : GLResource<kind>() {
     }
 
-    GLBuffer (const std::vector<T>& data, GLbitfield flags = detail::SGL_RW) :
+    GLBuffer (const std::vector<T>& data, detail::UsageType flags = detail::SGL_RW) :
         GLResource<kind>()
     {
         detail::initializeBuffer(*this, reinterpret_cast<char*>(&data[0]), sizeof(T) * data.size(), flags);
     }
 
     template <size_t len>
-    GLBuffer (const std::array<T,len>& data, GLbitfield flags = detail::SGL_RW) :
+    GLBuffer (const std::array<T,len>& data, detail::UsageType flags = detail::SGL_RW) :
         GLResource<kind>()
     {
         detail::initializeBuffer(*this, reinterpret_cast<char*>(&data[0]), sizeof(T) * len, flags);
     }
 
-    GLBuffer (const T* data, size_t len, GLbitfield flags = detail::SGL_RW) :
+    GLBuffer (const T* data, size_t len, detail::UsageType flags = detail::SGL_RW) :
         GLResource<kind>()
     {
         detail::initializeBuffer(*this, reinterpret_cast<char*>(data), sizeof(T) * len, flags);
     }
 
-    void reserve (size_t count, GLbitfield flags = detail::SGL_RW) {
+    void reserve (size_t count, detail::UsageType flags = detail::SGL_RW) {
         detail::initializeBuffer(*this, NULL, sizeof(T) * count, flags);
     }
 };
@@ -459,11 +463,12 @@ detail::BufferView<D, R::type> buffer_view (R& res, size_t start, size_t len, GL
     return {res,start,len,access};
 }
 
-template <class T>
-using ArrayBuffer = GLBuffer<GL_ARRAY_BUFFER,T>;
+template <class T> using ArrayBuffer    = GLBuffer<GL_ARRAY_BUFFER,T>;
+template <class T> using ArrayBufferMut = GLBufferMut<GL_ARRAY_BUFFER,T>;
 
-template <class T>
-using ArrayBufferMut = GLBufferMut<GL_ARRAY_BUFFER,T>;
+// TODO: Does this need to be anything other than uint32_t?
+using ElementArray    = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, uint32_t>;
+using ElementArrayMut = GLBufferMut<GL_ELEMENT_ARRAY_BUFFER, uint32_t>;
 
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 
