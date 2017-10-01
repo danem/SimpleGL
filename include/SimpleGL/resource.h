@@ -126,6 +126,7 @@ namespace detail {
             glBufferSubData(kind,start,len,data);
             sglDbgLogVerbose("Writing range %lu:%lu bytes to %d:%d", start, start+len, kind, res);
         }
+
     };
 #ifdef SGL_RENDERBUFFER_SUPPORTED
     template <GLenum kind>
