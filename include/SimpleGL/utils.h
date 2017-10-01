@@ -5,9 +5,21 @@
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
+#include <map>
 
 
 #define sglDbgPrint(...) do { printf("%s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); } while(0);
+
+#ifdef SGL_DEBUG_STATS
+sgl::util::detail::SGL_DEBUG_STATS __sglDebugStats__;
+#   define sglDbgMarkCreation(kind,count,dest) do { __sglDebugStats__.resources[kind].count += count; } while(0);
+#   define sglDbgMarkDeletion(kind,count,dest) do { __sglDebugStats__.resources[kind].count -= count; } while(0);
+#   define sglDbgMarkBind(kind,id)  do { __sglDebugStats__.resources[kind].bound += (id == 0 ? -1 : 1); } while(0);
+#else
+#   define sglDbgMarkCreation(kind,count,dest)
+#   define sglDbgMarkDeletion(kind,count,dest)
+#   define sglDbgMarkBind(kind,id)
+#endif
 
 #ifdef SGL_DEBUG
 #    define sglDbgCatchGLError() _sglGetGLError(false)
@@ -31,8 +43,17 @@
 
 #if (SGL_DEBUG >= 3)
 #   define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
+#   define sglDbgLogCreation(kind,count,dest) do { sglDbgMarkCreation(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("created resource %d:%d\n",kind,dest[i]); }} while(0);
+#   define sglDbgLogDeletion(kind,count,dest) do { sglDbgMarkDeletion(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("deleted resource %d:%d\n",kind,dest[i]); }} while(0);
+#   define sglDbgLogBind(kind,id) do { sglDbgMarkBind(kind,id); sglDbgPrint("bound resource %d:%d\n",kind,id); } while(0);
 #else
 #   define sglDbgLogVerbose2(...)
+#   define sglDbgLogCreation(kind,count,dest) sglDbgMarkCreation(kind,count,dest);
+#   define sglDbgLogDeletion(kind,count,dest) sglDbgMarkDeletion(kind,count,dest);
+#   define sglDbgLogBind(kind,id) sglDbgMarkBind(kind,id);
+#endif
+
+#else
 #endif
 
 #define _sglGetGLError(ignore) do {\
@@ -81,6 +102,21 @@ public:
     Range (T high) : high(high), low(0){}
     Range (T high, T low) : high(high), low(low) {}
 };
+
+namespace detail {
+
+    struct SGL_DEBUG_TYPE_STAT {
+        size_t count;
+        size_t bound;
+    };
+
+    struct SGL_DEBUG_STATS {
+        // Track resource allocation
+        std::map<GLuint,SGL_DEBUG_TYPE_STAT> resources;
+    };
+
+} // end namespace
+
 
 } // end namespace
 } // end namespace
