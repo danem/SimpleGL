@@ -57,8 +57,8 @@ int main () {
 
 ### Dependencies
 
-* GLFW 3+
-* GLEW
+* GLEW 
+* GLFW 3+ (optional)
 * GLM (optional)
 
 ### Compatibility
