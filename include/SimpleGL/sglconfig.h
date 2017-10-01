@@ -42,7 +42,7 @@
 #endif
 
 #ifndef SGL_OPENGL_MAX_MINOR
-#   define SLG_OPENGL_MAX_MINOR 0
+#   define SGL_OPENGL_MAX_MINOR 0
 #endif
 
 #define SGL_OPENGL_VER(major,minor) ((SGL_OPENGL_MAX_MAJOR >= major) && (SGL_OPENGL_MAX_MINOR >= minor))

@@ -50,7 +50,7 @@ public:
 
 };
 
-using MMeshResource = GLResourceM<MeshResource>;
+//using MMeshResource = GLResourceM<MeshResource>;
 
 MeshResource createPlane (int divs = 1);
 

@@ -12,8 +12,9 @@ namespace sgl {
 * ShaderStage represents a single compiled shader part (eg GL_VERTEX_SHADER).
 * ShaderStages can be cached and relinked to save compilation time.
 */
+
 template <GLenum kind>
-struct ShaderStage : GLResource<kind> {
+struct ShaderStage : public GLResource<kind> {
     static_assert(traits::IsShaderStage<kind>::value, "Invalid shader stage type");
 };
 

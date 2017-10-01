@@ -109,7 +109,7 @@ namespace detail {
 
     struct SGL_DEBUG_STATS {
         // Track resource allocation
-        std::map<GLuint,SGL_DEBUG_TYPE_STAT> resources;
+        std::map<GLenum,SGL_DEBUG_TYPE_STAT> resources;
     };
 
 } // end namespace
