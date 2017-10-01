@@ -40,8 +40,6 @@ namespace detail {
     using GLDeleter = void (*) (int, const GLuint*);
     using GLBinder  = void (*) (GLenum, GLuint);
 
-    // TODO: Figure out how to make these static...
-    // This would make GLResource zero-overhead
     template <GLenum kind, class T = GLenum>
     struct GLInterface {};
 
