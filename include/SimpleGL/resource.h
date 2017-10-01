@@ -92,7 +92,7 @@ namespace detail {
         static void destroy (int len, GLuint* dest) { glDeleteRenderbuffers(len,dest); sglDbgLogDeletion(kind,len,dest); }
         static void bind (GLuint id) { glBindRenderbuffer(kind,id); sglDbgLogBind(kind,id); }
     };
-#endif
+#endif // SGL_RENDERBUFFER_SUPPORTED
 
 
 #ifdef SGL_BUFFERSTORAGE_SUPPORTED
@@ -101,7 +101,7 @@ namespace detail {
 #else
     static GLenum SGL_RW = GL_READ_WRITE;
     using UsageType = GLenum;
-#endif
+#endif // SGL_BUFFERSTORAGE_SUPPORTED
 
     template <GLenum kind, class T = GLenum>
     struct GLBufferInterface;
@@ -113,7 +113,7 @@ namespace detail {
                     glBufferStorage(kind, len, data, usage);
             #else
                     glBufferData(kind,len,data,usage);
-            #endif
+            #endif // SGL_BUFFERSTORAGE_SUPPORTED
             sglDbgLogVerbose("Initializing immutable buffer %d:%d size: %lu", kind, res, len);
         }
 
@@ -131,11 +131,8 @@ namespace detail {
 #ifdef SGL_RENDERBUFFER_SUPPORTED
     template <GLenum kind>
     struct GLBufferInterface<kind, traits::IfRenderBuffer<kind>> {
-
-
-
     };
-#endif
+#endif // SGL_RENDERBUFFER_SUPPORTED
 
 
 
@@ -558,6 +555,7 @@ using ElementArrayBuffer    = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, T>;
 template <class T = uint32_t>
 using ElementArrayBufferMut = GLBufferMut<GL_ELEMENT_ARRAY_BUFFER, T>;
 
+#if SGL_VERTEXARRAY_SUPPORTED
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 
 
@@ -764,7 +762,9 @@ private:
 inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0){
     return {vao,attribs};
 }
+#endif // SGL_VERTEXARRAY_SUPPORTED
 
+#if SGL_FRAMEBUFFER_SUPPORTED
 // Thin wrapper around GL_FRAMEBUFFER. Provides functionality for attaching textures and renderbuffers
 template <GLenum kind>
 class Framebuffer : public GLResource<kind> {
@@ -786,13 +786,14 @@ public:
         glFramebufferTexture2D(kind, attachment, res, (GLuint)texture, 0);
     }
 
-#ifdef SGL_RENDERBUFERR_SUPPORTED
+#ifdef SGL_RENDERBUFFER_SUPPORTED
     void attachRenderBuffer (RenderBuffer& buffer, GLenum attachment = GL_COLOR_ATTACHMENT0) {
         this->bind();
         glFramebufferRenderbuffer(kind, attachment, buffer.type, buffer);
     }
-#endif
+#endif // SGL_RENDERBUFFER_SUPPORTED
 };
+#endif // SGL_FRAMEBUFFER_SUPPORTED
 
 
 } // end namespace

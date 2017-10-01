@@ -9,8 +9,8 @@
 * SGL_USE_GLM          - Use GLM math library. Needed for Camera
 * SGL_DEBUG [1-3]      - Enable debugging messages and error checking
 * SGL_DEBUG_STATS      - Collect gl runtime information
-* SGL_OPENGL_MAX_MAJOR - Define max available opengl api. Enables usage of newer features
-* SGL_OPENGL_MAX_MINOR - Define max available opengl api. Enables usage of newer features
+* SGL_OPENGL_MAX_MAJOR - Define max available opengl api. Enables usage of newer features. Defaults to 3
+* SGL_OPENGL_MAX_MINOR - Define max available opengl api. Enables usage of newer features. Defaults to 0
 */
 
 #if defined(SGL_USE_GLEW)
@@ -37,8 +37,9 @@
 #   include <GL/glu.h>
 #endif
 
+
 #ifndef SGL_OPENGL_MAX_MAJOR
-#   define SGL_OPENGL_MAX_MAJOR 2
+#   define SGL_OPENGL_MAX_MAJOR 3
 #endif
 
 #ifndef SGL_OPENGL_MAX_MINOR
@@ -51,12 +52,18 @@
 #   define SGL_BUFFERSTORAGE_SUPPORTED 1
 #endif
 
+#if SGL_OPENGL_VER(4,3)
+#   define SGL_COMPUTESHADER_SUPPORTED 1
+#endif
+
 #if SGL_OPENGL_VER(4,1)
 #   define SGL_PROGRAMPIPELINES_SUPPORTED 1
 #endif
 
 #if SGL_OPENGL_VER(3,0)
 #   define SGL_RENDERBUFFER_SUPPORTED 1
+#   define SGL_FRAMEBUFFER_SUPPORTED 1
+#   define SGL_VERTEXARRAY_SUPPORTED 1
 #endif
 
 namespace sgl {
