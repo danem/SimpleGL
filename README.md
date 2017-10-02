@@ -19,12 +19,16 @@ int main () {
             offsets.emplace_back(i/10.f, j/10.f, i/j);
         }
     }
-
+    
+    // Create a fixed size OpenGL GL_ARRAY_BUFFER with the contents of offsets.
+    // sizeof(ArrayBuffer<glm::vec3> == sizeof(GLuint)
     sgl::ArrayBuffer<glm::vec3> offsetsBuf{offsets};
     sgl::MeshResource mesh = sgl::createPlane();
-
-    sgl::vertexAttribBuilder(mesh,3,1)
-        .add(offsetsBuf);
+    
+    // Add new buffer to our VAO
+    sgl::vertexAttribBuilder(mesh,3)
+        .addBuffer(offsetsBuf)
+        .commit();
 
     sgl::Texture2D texture = sgl::TextureBuilder2D()
         .build("image.png");
@@ -57,8 +61,8 @@ int main () {
 
 ### Dependencies
 
-* GLFW 3+
-* GLEW
+* GLEW 
+* GLFW 3+ (optional)
 * GLM (optional)
 
 ### Compatibility
