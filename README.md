@@ -54,6 +54,7 @@ int main () {
 * Near zero overhead "typesafe" opengl object wrappers
 * Opengl object lifetime managment
 * Convenient shader compilation and access API
+* Builtin performance counters and debug logs for < OpenGL 4.3 (eg: OSX)
 * Low overhead, safe texture interface
 * Basic parametric mesh primitive constructors
 * Simple, flexible opengl context creation API
@@ -61,7 +62,7 @@ int main () {
 
 ### Dependencies
 
-* GLEW 
+* GLEW or libepoxy
 * GLFW 3+ (optional)
 * GLM (optional)
 

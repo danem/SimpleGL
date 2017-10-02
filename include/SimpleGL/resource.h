@@ -14,10 +14,6 @@
 namespace sgl {
 
 namespace detail {
-    // TODO: Hack to make vertex arrays conform with typical interface
-    static inline void __glBindVertexArray (GLenum _, GLuint target) {
-        __glewBindVertexArray(target);
-    }
 
     // TODO: Hack to make shader programs conform with typical interface
     static inline void __glCreateProgram (int len, GLuint* dest) {
@@ -45,16 +41,16 @@ namespace detail {
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfBuffer<kind>> {
-        static void create (int len, GLuint* dest) {  __glewGenBuffers(len,dest); sglDbgLogCreation(kind,len,dest);  }
-        static void destroy (int len, GLuint* dest) { __glewDeleteBuffers(len,dest); sglDbgLogDeletion(kind,len,dest);  }
-        static void bind (GLuint id) { __glewBindBuffer(kind,id); sglDbgLogBind(kind,id); }
+        static void create (int len, GLuint* dest) {  glGenBuffers(len,dest); sglDbgLogCreation(kind,len,dest);  }
+        static void destroy (int len, GLuint* dest) { glDeleteBuffers(len,dest); sglDbgLogDeletion(kind,len,dest);  }
+        static void bind (GLuint id) { glBindBuffer(kind,id); sglDbgLogBind(kind,id); }
     };
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfFramebuffer<kind>> {
-        static void create (int len, GLuint* dest) { __glewGenFramebuffers(len,dest); sglDbgLogCreation(kind,len,dest);}
-        static void destroy (int len, GLuint* dest) { __glewDeleteFramebuffers(len,dest); sglDbgLogDeletion(kind,len,dest);}
-        static void bind (GLuint id) { __glewBindFramebuffer(kind,id); sglDbgLogBind(kind,id);}
+        static void create (int len, GLuint* dest) { glGenFramebuffers(len,dest); sglDbgLogCreation(kind,len,dest);}
+        static void destroy (int len, GLuint* dest) { glDeleteFramebuffers(len,dest); sglDbgLogDeletion(kind,len,dest);}
+        static void bind (GLuint id) { glBindFramebuffer(kind,id); sglDbgLogBind(kind,id);}
     };
 
     template <GLenum kind>
@@ -66,9 +62,9 @@ namespace detail {
 
     template <GLenum kind>
     struct GLInterface<kind, traits::IfVertexArray<kind>> {
-        static void create (int len, GLuint* dest) { __glewGenVertexArrays(len,dest); sglDbgLogCreation(kind,len,dest);}
-        static void destroy (int len, GLuint* dest) { __glewDeleteVertexArrays(len,dest); sglDbgLogDeletion(kind,len,dest);}
-        static void bind (GLuint id) { __glewBindVertexArray(id); sglDbgLogBind(kind,id);}
+        static void create (int len, GLuint* dest) { glGenVertexArrays(len,dest); sglDbgLogCreation(kind,len,dest);}
+        static void destroy (int len, GLuint* dest) { glDeleteVertexArrays(len,dest); sglDbgLogDeletion(kind,len,dest);}
+        static void bind (GLuint id) { glBindVertexArray(id); sglDbgLogBind(kind,id);}
     };
 
     template <GLenum kind>
@@ -87,13 +83,13 @@ namespace detail {
 
     template <>
     struct GLInterface<GL_RENDERBUFFER, GLenum>{
-        static void create (int len, GLuint* dest) { glGenRenderbuffers(len,dest); sglDbgLogCreation(kind,len,dest); }
-        static void destroy (int len, GLuint* dest) { glDeleteRenderbuffers(len,dest); sglDbgLogDeletion(kind,len,dest); }
+        static void create (int len, GLuint* dest) { glGenRenderbuffers(len,dest); sglDbgLogCreation(GL_RENDERBUFFER,len,dest); }
+        static void destroy (int len, GLuint* dest) { glDeleteRenderbuffers(len,dest); sglDbgLogDeletion(GL_RENDERBUFFER,len,dest); }
         static void bind (GLuint id) { glBindRenderbuffer(GL_RENDERBUFFER,id); sglDbgLogBind(GL_RENDERBUFFER,id); }
     };
 
 
-    static GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
+    //static GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
     using UsageType = GLbitfield;
 
     template <GLenum kind, class T = GLenum>
@@ -421,26 +417,26 @@ public:
     GLBuffer () : GLResource<kind>() {
     }
 
-    GLBuffer (const std::vector<T>& data, detail::UsageType flags = detail::SGL_RW) :
+    GLBuffer (const std::vector<T>& data, detail::UsageType flags = SGL_RW) :
         GLResource<kind>()
     {
         detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * data.size(), flags);
     }
 
     template <size_t len>
-    GLBuffer (const std::array<T,len>& data, detail::UsageType flags = detail::SGL_RW) :
+    GLBuffer (const std::array<T,len>& data, detail::UsageType flags = SGL_RW) :
         GLResource<kind>()
     {
         detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * len, flags);
     }
 
-    GLBuffer (const T* data, size_t len, detail::UsageType flags = detail::SGL_RW) :
+    GLBuffer (const T* data, size_t len, detail::UsageType flags = SGL_RW) :
         GLResource<kind>()
     {
         detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(data), sizeof(T) * len, flags);
     }
 
-    void reserve (size_t count, detail::UsageType flags = detail::SGL_RW) {
+    void reserve (size_t count, detail::UsageType flags = SGL_RW) {
         detail::GLBufferInterface<kind>::initialize(this->_id, NULL, sizeof(T) * count, flags);
     }
 };

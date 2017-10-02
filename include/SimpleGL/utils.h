@@ -6,36 +6,122 @@
 #include <sstream>
 #include <stdio.h>
 #include <map>
+#include <vector>
+#include <initializer_list>
+#include <iostream>
 
 
 namespace sgl {
 namespace util {
 
-namespace detail {
-
-    struct SGL_DEBUG_TYPE_STAT {
-        size_t count;
-        size_t bound;
-    };
-
-    struct SGL_DEBUG_STATS_t {
-        // Track resource allocation
-        std::map<GLenum,SGL_DEBUG_TYPE_STAT> resources;
-    };
-
-} // end namespace
-
 const char * glErrorToString (GLenum error);
 
+class Formatter {
+private:
+    std::stringstream _stream;
+
+public:
+    Formatter () {}
+    ~Formatter() {}
+
+    template <class T>
+    Formatter& operator<< (const T& value) {
+        _stream << value;
+        return *this;
+    }
+
+    std::string str() const;
+    operator std::string () const;
+};
+
+
+struct DebugConfigLevel {
+    GLenum source;
+    GLenum type;
+    GLenum severity;
+};
+
+struct DebugConfig {
+    std::vector<DebugConfigLevel> levels;
+
+    DebugConfig () {}
+
+    DebugConfig (const std::initializer_list<DebugConfigLevel>& opts) {
+        for (const auto& l : opts) {
+            levels.emplace_back(l);
+        }
+    }
+};
+
+const DebugConfig SGL_DEBUG_MAX_VERBOSE{{GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE}};
+const DebugConfig SGL_DEBUG_VERBOSE{
+    {GL_DEBUG_SOURCE_API, GL_DONT_CARE, GL_DONT_CARE},
+    {GL_DEBUG_SOURCE_SHADER_COMPILER, GL_DONT_CARE, GL_DONT_CARE}
+};
+
+const DebugConfig SGL_DEBUG_ERRORS_VERBOOSE {{GL_DONT_CARE, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE}};
+const DebugConfig SGL_DEBUG_ERRORS {
+    {GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE},
+    {GL_DEBUG_SOURCE_SHADER_COMPILER, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE}
+};
+
+static inline void __sglDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                            GLsizei length, const GLchar* message, const void* userParam) {
+    Formatter msg;
+
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:         msg << "ERROR: "; break;
+    case GL_DEBUG_SEVERITY_MEDIUM:       msg << "WARNING: "; break;
+    case GL_DEBUG_SEVERITY_LOW:          msg << "INFO: "; break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: msg << "LOG: "; break;
+    default:                             msg << "UNKNOWN: "; break;
+    }
+
+    switch (source) {
+    case GL_DEBUG_SOURCE_API:             msg << "OpenGL "; break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   msg << "Window "; break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:     msg << "Third Party "; break;
+    case GL_DEBUG_SOURCE_OTHER:           msg << "Other "; break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: msg << "Shader Compiler "; break;
+    default:                              msg << "Unknown "; break;
+    }
+
+    switch (type) {
+    case GL_DEBUG_TYPE_ERROR:               msg << "Error "; break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: msg << "Deprecated "; break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  msg << "Undefined Behavior "; break;
+    case GL_DEBUG_TYPE_PORTABILITY:         msg << "Portability "; break;
+    case GL_DEBUG_TYPE_PERFORMANCE:         msg << "Performance "; break;
+    case GL_DEBUG_TYPE_MARKER:              msg << "Marker "; break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:          msg << "Push Group "; break;
+    case GL_DEBUG_TYPE_POP_GROUP:           msg << "Pop Group "; break;
+    case GL_DEBUG_TYPE_OTHER:               msg << "Other "; break;
+    }
+
+    msg << "id: " << id << " message: " << message;
+    std::cout << msg.str() << std::endl;
+}
+
+static void initializeDebugging (const DebugConfig& config) {
+    if (!SGL_DEBUGLOG_SUPPORTED) return;
+    for (const auto& l : config.levels) {
+        glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
+    }
+}
+
 } // end namespace
 } // end namespace
+
+// Macros
 
 #define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
 
 #define sglDbgPrint(...) do { printf("%s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); } while(0);
 
-#define sglGetGLError(ignore) do {\
-       GLenum err = glGetError();\
+// Check GL error, save it to input variable,
+// print error message, and optionally quit
+#define sglGetGLError(err,ignore) do {\
+       err = glGetError();\
        if (err != GL_NO_ERROR) {\
             const char * msg = sgl::util::glErrorToString(err);\
             printf("Error code %d at %s:%d: %s\n", err, __FILE__, __LINE__, msg);\
@@ -43,57 +129,42 @@ const char * glErrorToString (GLenum error);
        }\
    } while (0);
 
-#define sglCatchGLError() sglGetGLError(false)
-#define sglCheckGLError() sglGetGLError(true)
-#define sglClearGLError() glGetError()
+#define sglClearGLError() glGetError();
+#define sglCatchGLError() do { GLenum err; sglGetGLError(err,false); } while (0);
+#define sglCheckGLError() do { GLenum err; sglGetGLError(err,true); } while (0);
 
-#ifdef SGL_DEBUG_STATS
-static sgl::util::detail::SGL_DEBUG_STATS_t __sglDebugStats__;
-#   define sglDbgRecordCreation(kind,len,dest) do { __sglDebugStats__.resources[kind].count += len; } while(0);
-#   define sglDbgRecordDeletion(kind,len,dest) do { __sglDebugStats__.resources[kind].count -= len; } while(0);
-#   define sglDbgRecordBind(kind,id)  do { __sglDebugStats__.resources[kind].bound += (id == 0 ? -1 : 1); } while(0);
-#   define sglDbgStats() (&__sglDebugStats__)
-#else
-#   define sglDbgRecordCreation(kind,count,dest)
-#   define sglDbgRecordDeletion(kind,count,dest)
-#   define sglDbgRecordBind(kind,id)
-#   define sglDbgStats() nullptr
-#endif
+#define sglCatchGLErrorLog(...) do { GLenum err; sglGetGLError(err,false); if (err != GL_NO_ERROR) sglDbgPrint(__VA_ARGS__); } while (0);
+#define sglCheckGLErrorLog(...) do { GLenum err; sglGetGLError(err,true); if (err != GL_NO_ERROR) sglDbgPrint(__VA_ARGS__); } while (0);
 
 #if SGL_DEBUG > 0
-#    define sglDbgCatchGLError() sglGetGLError(false)
-#    define sglDgbLog(...) sglDbgPrint(__VA_ARGS__)
+#    define sglDbgLog(...) sglDbgPrint(__VA_ARGS__)
+#    define sglDbgCatchGLError() sglCatchGLError()
+#    define sglDbgCatchGLErrorLog(...) sglCatchGLErrorLog(__VA_ARGS__)
 #else
-#    define sglDbgCatchGLError()
 #    define sglDbgLog(...)
+#    define sglDbgCatchGLError()
+#    define sglDbgCatchGLErrorLog(...)
 #endif
 
-#if (SGL_DEBUG >= 1)
-#   define sglDbgLogInfo(...) sglDbgPrint(__VA_ARGS__)
+#if SGL_DEBUG >= 1
+#    define sglDbgLogVerbose(...) sglDbgPrint(__VA_ARGS__)
 #else
-#   define sglDbgLogInfo(...)
+#    define sglDbgLogVerbose(...)
 #endif
 
-#if (SGL_DEBUG >= 2)
-#   define sglDbgLogVerbose(...) sglDbgPrint(__VA_ARGS__)
+#if SGL_DEBUG >= 2
+#    define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
+#    define sglDbgLogCreation(kind,len,dest) do { for(int i=0;i<len;i++){ sglDbgPrint("created resource %d:%d\n", kind,dest[i]); }} while(0);
+#    define sglDbgLogDeletion(kind,len,dest) do { for(int i=0;i<len;i++){ sglDbgPrint("deleted resource %d:%d\n", kind,dest[i]); }} while(0);
+#    define sglDbgLogBind(kind,dest) do { sglDbgPrint("bound resource %d:%d\n",kind,dest); } while (0);
 #else
-#   define sglDbgLogVerbose(...)
+#    define sglDbgLogVerbose2(...)
+#    define sglDbgLogCreation(kind,len,dest)
+#    define sglDbgLogDeletion(kind,len,dest)
+#    define sglDbgLogBind(kind,dest)
 #endif
 
-#if (SGL_DEBUG >= 3)
-#   define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
-#   define sglDbgLogCreation(kind,count,dest) do { sglDbgRecordCreation(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("created resource %d:%d\n",kind,dest[i]); }} while(0);
-#   define sglDbgLogDeletion(kind,count,dest) do { sglDbgRecordDeletion(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("deleted resource %d:%d\n",kind,dest[i]); }} while(0);
-#else
-#   define sglDbgLogVerbose2(...)
-#   define sglDbgLogCreation(kind,count,dest) sglDbgRecordCreation(kind,count,dest);
-#   define sglDbgLogDeletion(kind,count,dest) sglDbgRecordDeletion(kind,count,dest);
-#endif
 
-#if (SGL_DEBUG >= 4)
-#   define sglDbgLogVerbose3(...) sglDbgPrint(__VA_ARGS__)
-#   define sglDbgLogBind(kind,id) do { sglDbgRecordBind(kind,id); sglDbgPrint("bound resource %d:%d\n",kind,id); } while(0);
-#else
-#   define sglDbgLogVerbose3(...)
-#   define sglDbgLogBind(kind,id) sglDbgRecordBind(kind,id);
-#endif
+
+
+

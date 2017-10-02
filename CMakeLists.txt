@@ -7,8 +7,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 11)
 
 set(SGL_USE_GLFW ON CACHE BOOL "Use GLFW as window api")
-set(SGL_USE_GLEW ON CACHE BOOL "Use GLEW")
+set(SGL_USE_GLEW OFF CACHE BOOL "Use GLEW for Opengl loading")
+set(SGL_USE_LIBEPOXY ON CACHE BOOL "Use libepoxy for Opengl loading")
 set(SGL_USE_GLM ON CACHE BOOL "Use GLM")
+set(SGL_USE_GLES OFF CACHE BOOL "Enabled GLES")
 set(SGL_COMPILE_TESTS ON CACHE BOOL "Make test projects")
 set(SGL_COMPILE_BENCHMARKS OFF CACHE BOOL "Make benchmarks")
 #set(SGL_DEBUG 0 CACHE STRING "SGL Debug Mode. Valid values [1-3]")
@@ -28,9 +30,19 @@ if(${SGL_USE_GLFW})
     set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLFW=1)
 endif()
 
-if(${SGL_USE_GLEW})
-    find_package(GLEW REQUIRED)
-    set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLEW=1)
+
+#if(${SGL_USE_GLEW})
+#    find_package(GLEW REQUIRED)
+#    set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLEW=1)
+#endif()
+
+if(${SGL_USE_LIBEPOXY})
+    find_package(EPOXY REQUIRED)
+    set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_EPOXY=1)
+endif()
+
+if(${SGL_USE_GLES})
+    set(DEFINITIONS ${DEFINITIONS} -DSGL_USE_GLES=1)
 endif()
 
 if(${SGL_USE_GLM})
@@ -41,6 +53,7 @@ endif()
 if(${SGL_DEBUG})
     set(DEFINITIONS ${DEFINITIONS} -DSGL_DEBUG=1)
 endif()
+
 
 
 
@@ -85,7 +98,8 @@ set(OTHER_FILES
 
 set(EXTERN_LIBRARIES ${GLFW_LIBRARIES}
                      ${GLEW_LIBRARIES}
-                     ${OPENGL_LIBRARIES})
+                     ${OPENGL_LIBRARIES}
+                     ${EPOXY_LIBRARIES})
 
 # OSX needs Cocoa
 if (APPLE)
@@ -97,7 +111,8 @@ endif()
 set(EXTERN_INCLUDES ${GLM_INCLUDE_DIR}
                     ${GLEW_INCLUDE_DIR}
                     ${GLFW3_INCLUDE_DIR}
-                    ${GLM_INCLUDE_DIR})
+                    ${GLM_INCLUDE_DIR}
+                    ${EPOXY_INCLUDE_DIR})
 
 
 add_definitions(${DEFINITIONS})

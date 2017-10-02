@@ -34,6 +34,7 @@ namespace detail {
         char redBits, blueBits, greenBits, alphaBits, depthBits, stencilBits;
         bool forwardCompat;
         bool windowVisible;
+        bool debug;
     };
 
     void getDefaultWindowConfig (ContextConfig& dest, int width = 0, int height = 0, const std::string& title = "");
@@ -51,8 +52,9 @@ private:
 public:
     detail::ContextConfig attrs;
 
-    Context (int width, int height, const std::string& title = "") {
+    Context (int width, int height, const std::string& title = "", bool debug = false) {
         detail::getDefaultWindowConfig(attrs, width, height, title);
+        attrs.debug = debug;
         initialize();
     }
 
@@ -157,6 +159,11 @@ public:
 
     ContextBuilder& setVisible (bool visible) {
         _config.windowVisible = visible;
+        return *this;
+    }
+
+    ContextBuilder& setDebug (bool enabled){
+        _config.debug = enabled;
         return *this;
     }
 

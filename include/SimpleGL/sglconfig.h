@@ -16,8 +16,9 @@
 #if defined(SGL_USE_GLEW)
 #   define GLEW_STATIC
 #   include <GL/glew.h>
-#else
-#   error "Only GLEW is currently supported. Make sure to define -DSGL_USE_GLEW"
+#elif defined(SGL_USE_EPOXY)
+#   include <epoxy/gl.h>
+//#   include <epoxy/glx.h>
 #endif
 
 #if defined(SGL_USE_GLFW)
@@ -45,12 +46,18 @@
 #   define SGL_OPENGL_MAX_MINOR 1
 #endif
 
+#ifndef SGL_DEBUG
+#    define SGL_DEBUG 0
+#endif
+
 namespace sgl {
 namespace config {
     struct SGL_OPENGL_STATE {
         int version_major = SGL_OPENGL_MAX_MAJOR;
         int version_minor = SGL_OPENGL_MAX_MINOR;
+        bool debuglogSupported;
     };
+
     static SGL_OPENGL_STATE __sglOpenGLState__;
 
     inline bool sglOpenglVersion (int major, int minor) {
@@ -71,6 +78,7 @@ inline void sglInitialize (int major, int minor) {
 #define SGL_PROGRAMPIPELINES_SUPPORTED sgl::config::sglOpenglVersion(4,1)
 #define SGL_COMPUTESHADER_SUPPORTED    sgl::config::sglOpenglVersion(4,3)
 #define SGL_BUFFERSTORAGE_SUPPORTED    sgl::config::sglOpenglVersion(4,4)
+#define SGL_DEBUGLOG_SUPPORTED         sgl::config::__sglOpenGLState__.debuglogSupported
 #define SGL_RW                         (SGL_BUFFERSTORAGE_SUPPORTED ? (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT) : GL_DYNAMIC_DRAW)
 
 
