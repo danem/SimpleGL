@@ -42,7 +42,7 @@
 #endif
 
 #ifndef SGL_OPENGL_MAX_MINOR
-#   define SGL_OPENGL_MAX_MINOR 0
+#   define SGL_OPENGL_MAX_MINOR 3
 #endif
 
 #define SGL_OPENGL_VER(major,minor) ((SGL_OPENGL_MAX_MAJOR >= major) && (SGL_OPENGL_MAX_MINOR >= minor))
@@ -57,6 +57,10 @@
 
 #if SGL_OPENGL_VER(4,1)
 #   define SGL_PROGRAMPIPELINES_SUPPORTED 1
+#endif
+
+#if SGL_OPENGL_VER(3,3)
+#   define SGL_UNIFORMBLOCK_SUPPORTED 1
 #endif
 
 #if SGL_OPENGL_VER(3,0)

@@ -55,8 +55,8 @@ static void __handleKeyEvent (GLFWwindow* window, int key, int scancode, int act
 
 
 void detail::getDefaultWindowConfig(detail::ContextConfig& config, int width, int height, const std::string& title) {
-    config.glVersionMajor = 3;
-    config.glVersionMinor = 3;
+    config.glVersionMajor = SGL_OPENGL_MAX_MAJOR;
+    config.glVersionMinor = SGL_OPENGL_MAX_MINOR;
     config.glProfile = GLProfile::CORE;
     config.resizable = false;
     config.decorated = true;
