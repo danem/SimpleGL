@@ -27,40 +27,14 @@ namespace detail {
 
 const char * glErrorToString (GLenum error);
 
-class Formatter {
-private:
-    std::stringstream _stream;
-
-public:
-    Formatter () {}
-    ~Formatter() {}
-
-    template <class T>
-    Formatter& operator<< (const T& value) {
-        _stream << value;
-        return *this;
-    }
-
-    std::string str() const;
-    operator std::string () const;
-};
-
-template <class T>
-class Range {
-public:
-    T low;
-    T high;
-
-    Range (T high) : high(high), low(0){}
-    Range (T high, T low) : high(high), low(low) {}
-};
-
-
-
 } // end namespace
 } // end namespace
 
-#define _sglGetGLError(ignore) do {\
+#define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
+
+#define sglDbgPrint(...) do { printf("%s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); } while(0);
+
+#define sglGetGLError(ignore) do {\
        GLenum err = glGetError();\
        if (err != GL_NO_ERROR) {\
             const char * msg = sgl::util::glErrorToString(err);\
@@ -69,12 +43,9 @@ public:
        }\
    } while (0);
 
-#define sglCatchGLError() _sglGetGLError(false)
-#define sglCheckGLError() _sglGetGLError(true)
+#define sglCatchGLError() sglGetGLError(false)
+#define sglCheckGLError() sglGetGLError(true)
 #define sglClearGLError() glGetError()
-#define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
-
-#define sglDbgPrint(...) do { printf("%s:%d ", __FILE__, __LINE__); printf(__VA_ARGS__); } while(0);
 
 #ifdef SGL_DEBUG_STATS
 static sgl::util::detail::SGL_DEBUG_STATS_t __sglDebugStats__;
@@ -90,7 +61,7 @@ static sgl::util::detail::SGL_DEBUG_STATS_t __sglDebugStats__;
 #endif
 
 #if SGL_DEBUG > 0
-#    define sglDbgCatchGLError() _sglGetGLError(false)
+#    define sglDbgCatchGLError() sglGetGLError(false)
 #    define sglDgbLog(...) sglDbgPrint(__VA_ARGS__)
 #else
 #    define sglDbgCatchGLError()
@@ -113,10 +84,16 @@ static sgl::util::detail::SGL_DEBUG_STATS_t __sglDebugStats__;
 #   define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
 #   define sglDbgLogCreation(kind,count,dest) do { sglDbgRecordCreation(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("created resource %d:%d\n",kind,dest[i]); }} while(0);
 #   define sglDbgLogDeletion(kind,count,dest) do { sglDbgRecordDeletion(kind,count,dest); for(int i=0;i<count;i++){ sglDbgPrint("deleted resource %d:%d\n",kind,dest[i]); }} while(0);
-#   define sglDbgLogBind(kind,id) do { sglDbgRecordBind(kind,id); sglDbgPrint("bound resource %d:%d\n",kind,id); } while(0);
 #else
 #   define sglDbgLogVerbose2(...)
 #   define sglDbgLogCreation(kind,count,dest) sglDbgRecordCreation(kind,count,dest);
 #   define sglDbgLogDeletion(kind,count,dest) sglDbgRecordDeletion(kind,count,dest);
+#endif
+
+#if (SGL_DEBUG >= 4)
+#   define sglDbgLogVerbose3(...) sglDbgPrint(__VA_ARGS__)
+#   define sglDbgLogBind(kind,id) do { sglDbgRecordBind(kind,id); sglDbgPrint("bound resource %d:%d\n",kind,id); } while(0);
+#else
+#   define sglDbgLogVerbose3(...)
 #   define sglDbgLogBind(kind,id) sglDbgRecordBind(kind,id);
 #endif

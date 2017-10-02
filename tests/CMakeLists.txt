@@ -25,6 +25,7 @@ set(DEFINITIONS ${DEFINITIONS}
 
 test_target(context-test     context-test.cc)
 test_target(cube-test        cube-test.cc)
+test_target(debug-test       debug-test.cc)
 test_target(framebuffer-test framebuffer-test.cc)
 test_target(game-of-life     game-of-life.cc)
 test_target(instanced-test   instanced-test.cpp)

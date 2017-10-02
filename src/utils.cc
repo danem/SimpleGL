@@ -3,14 +3,6 @@
 using namespace sgl;
 using namespace util;
 
-std::string sgl::util::Formatter::str () const {
-    return _stream.str();
-}
-
-sgl::util::Formatter::operator std::string () const {
-    return _stream.str();
-}
-
 const char * sgl::util::glErrorToString (GLenum error){
     switch (error) {
         case GL_INVALID_ENUM: 

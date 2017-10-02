@@ -71,6 +71,7 @@ inline void sglInitialize (int major, int minor) {
 #define SGL_PROGRAMPIPELINES_SUPPORTED sgl::config::sglOpenglVersion(4,1)
 #define SGL_COMPUTESHADER_SUPPORTED    sgl::config::sglOpenglVersion(4,3)
 #define SGL_BUFFERSTORAGE_SUPPORTED    sgl::config::sglOpenglVersion(4,4)
+#define SGL_RW                         (SGL_BUFFERSTORAGE_SUPPORTED ? (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT) : GL_DYNAMIC_DRAW)
 
 
 
