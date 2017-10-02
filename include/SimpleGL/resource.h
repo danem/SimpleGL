@@ -130,6 +130,66 @@ namespace detail {
 
 } // end namespace
 
+/**
+ * Core abstraction for SimpleGL. This class is a zero overhead mechanism for
+ * managing all OpenGL entities. In this class' constructor it generates
+ * an OpenGL handle of the appropriate type. Because it also allows wrapping
+ * existing OpenGL handles, its destructor does not release the object, so you
+ * must be careful to call GLResource::release() or wrap the resource in
+ * a ResourceGuard.
+ *
+ * ex:
+ * GLResource is the same size as GLuint
+ *
+ *     sizeof(GLResource<GL_ARRAY_BUFFER>) == sizeof(GLuint);
+ *
+ * ex:
+ * You can create OpenGL entities
+ *
+ *     sgl::GLResource<GL_ARRAY_BUFFER> buffer; // buffer has been created
+ *     buffer.bind();
+ *     glBufferData(buffer.type, len, data, GL_STATIC_DRAW);
+ *     buffer.unbind();
+ *     buffer.release();
+ *
+ * ex:
+ * You can wrap existing OpenGL handles with it.
+ *
+ *     GLuint handle;
+ *     glGenBuffers(1, &handle);
+ *     GLResource<GL_ARRAY_BUFFER> res(handle);
+ *     res.bind();
+ *
+ * ex:
+ * You can use them interchangably with GLuints
+ *
+ *     sgl::GLResource<GL_ARRAY_BUFFER> buffer;
+ *     glBindBuffer(buffer.type, buffer);
+ *     glDeleteBuffers(1,&buffer);
+ *
+ * ex:
+ * You can use them to ensure type correctness
+ *
+ *     using ArrayBuffer = GLResource<GL_ARRAY_BUFFER>;
+ *
+ *     void myUnsafeFunction (GLuint buffer) {
+ *         // what kind of buffer? It will compile for any input.
+ *     }
+ *
+ *     void mySafeFunction (ArrayBuffer& buffer) {
+ *         // will only compile with the proper type
+ *     }
+ *
+ * ex:
+ * You can use them will the rest of SimpleGL's helper classes
+ *
+ *     sgl::GLResource<GL_ARRAY_BUFFER> buffer;
+ *     {
+ *         // buffer will unbind at the end of the block
+ *         auto bg = sgl::bind_guard(buffer);
+ *     }
+ */
+
 template <GLenum kind>
 class GLResource {
 protected:
@@ -188,6 +248,11 @@ inline void destroy (GLuint* dest, size_t len) {
     detail::GLInterface<kind>::destroy(len,&dest);
 }
 
+
+/**
+* GLResourceArray provides a mechanism for allocating a number of resources in a single opengl call.
+*
+*/
 
 template <GLenum kind>
 class GLResourceArray {
@@ -285,6 +350,18 @@ template <GLenum kind>
 BindGuard<kind> bind_guard (GLResource<kind>&& res, bool alreadyBound = false) {
     return {res,alreadyBound};
 }
+
+/**
+* ResourceGuard brings RAII behavior to GLResources. It can be used interchangably with
+* GLResources.
+*
+* ex:
+*
+*   GLResource<GL_ARRAY_BUFFER> buffer;
+*   ResourceGuard<GL_ARRAY_BUFFER> rg(buffer);
+*   auto rg2 = resource_guard(buffer);
+*   auto rg3 = resource_guard(create<GL_ARRAY_BUFFER>());
+*/
 
 template <GLenum kind>
 class ResourceGuard {
