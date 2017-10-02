@@ -85,54 +85,45 @@ namespace detail {
         static void bind (GLuint id) { __glUseProgram(kind,id); sglDbgLogBind(kind,id);}
     };
 
-#if SGL_RENDERBUFFER_SUPPORTED
     template <>
     struct GLInterface<GL_RENDERBUFFER, GLenum>{
         static void create (int len, GLuint* dest) { glGenRenderbuffers(len,dest); sglDbgLogCreation(kind,len,dest); }
         static void destroy (int len, GLuint* dest) { glDeleteRenderbuffers(len,dest); sglDbgLogDeletion(kind,len,dest); }
-        static void bind (GLuint id) { glBindRenderbuffer(kind,id); sglDbgLogBind(kind,id); }
+        static void bind (GLuint id) { glBindRenderbuffer(GL_RENDERBUFFER,id); sglDbgLogBind(GL_RENDERBUFFER,id); }
     };
-#endif // SGL_RENDERBUFFER_SUPPORTED
 
 
-#ifdef SGL_BUFFERSTORAGE_SUPPORTED
     static GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
     using UsageType = GLbitfield;
-#else
-    static GLenum SGL_RW = GL_READ_WRITE;
-    using UsageType = GLenum;
-#endif // SGL_BUFFERSTORAGE_SUPPORTED
 
     template <GLenum kind, class T = GLenum>
     struct GLBufferInterface;
 
     template <GLenum kind>
     struct GLBufferInterface<kind, traits::IfBuffer<kind>> {
-        void initialize (GLuint res, const char * data, size_t len, UsageType usage) {
-            #ifdef SGL_BUFFERSTORAGE_SUPPORTED
+        static void initialize (GLuint res, const char * data, size_t len, UsageType usage) {
+            if (SGL_BUFFERSTORAGE_SUPPORTED) {
                     glBufferStorage(kind, len, data, usage);
-            #else
+            } else {
                     glBufferData(kind,len,data,usage);
-            #endif // SGL_BUFFERSTORAGE_SUPPORTED
+            }
             sglDbgLogVerbose("Initializing immutable buffer %d:%d size: %lu", kind, res, len);
         }
 
-        void initializeMut (GLuint res, const char * data, size_t len, GLenum usage) {
+        static void initializeMut (GLuint res, const char * data, size_t len, GLenum usage) {
             glBufferData(kind,len,data,usage);
             sglDbgLogVerbose("Initializing mutable buffer %d:%d size: %lu", kind, res, len);
         }
 
-        void update (GLuint res, const char * data, size_t start, size_t len) {
+        static void update (GLuint res, const char * data, size_t start, size_t len) {
             glBufferSubData(kind,start,len,data);
             sglDbgLogVerbose("Writing range %lu:%lu bytes to %d:%d", start, start+len, kind, res);
         }
 
     };
-#ifdef SGL_RENDERBUFFER_SUPPORTED
     template <GLenum kind>
     struct GLBufferInterface<kind, traits::IfRenderBuffer<kind>> {
     };
-#endif // SGL_RENDERBUFFER_SUPPORTED
 
 
 
@@ -555,7 +546,6 @@ using ElementArrayBuffer    = GLBuffer<GL_ELEMENT_ARRAY_BUFFER, T>;
 template <class T = uint32_t>
 using ElementArrayBufferMut = GLBufferMut<GL_ELEMENT_ARRAY_BUFFER, T>;
 
-#if SGL_VERTEXARRAY_SUPPORTED
 using VertexArray = GLResource<GL_VERTEX_ARRAY>;
 
 
@@ -762,15 +752,13 @@ private:
 inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0){
     return {vao,attribs};
 }
-#endif // SGL_VERTEXARRAY_SUPPORTED
 
-#if SGL_FRAMEBUFFER_SUPPORTED
 // Thin wrapper around GL_FRAMEBUFFER. Provides functionality for attaching textures and renderbuffers
 template <GLenum kind>
-class Framebuffer : public GLResource<kind> {
+class FramebufferBase : public GLResource<kind> {
     static_assert(traits::IsFramebuffer<kind>::value, "Not valid framebuffer target");
 public:
-    Framebuffer () :
+    FramebufferBase () :
         GLResource<kind>()
     {}
 
@@ -786,14 +774,15 @@ public:
         glFramebufferTexture2D(kind, attachment, res, (GLuint)texture, 0);
     }
 
-#ifdef SGL_RENDERBUFFER_SUPPORTED
     void attachRenderBuffer (RenderBuffer& buffer, GLenum attachment = GL_COLOR_ATTACHMENT0) {
         this->bind();
         glFramebufferRenderbuffer(kind, attachment, buffer.type, buffer);
     }
-#endif // SGL_RENDERBUFFER_SUPPORTED
 };
-#endif // SGL_FRAMEBUFFER_SUPPORTED
+
+using Framebuffer     = FramebufferBase<GL_FRAMEBUFFER>;
+using DrawFramebuffer = FramebufferBase<GL_DRAW_FRAMEBUFFER>;
+using ReadFramebuffer = FramebufferBase<GL_READ_FRAMEBUFFER>;
 
 
 } // end namespace

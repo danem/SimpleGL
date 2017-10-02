@@ -110,6 +110,7 @@ void Context::initialize () {
     glfwSetScrollCallback(_windowState, __handleMouseScroll);
     glfwSetKeyCallback(_windowState, __handleKeyEvent);
 
+    sgl::sglInitialize(attrs.glVersionMajor, attrs.glVersionMinor);
     sglClearGLError();
 
 }
