@@ -95,6 +95,7 @@ private:
 
 public:
     CameraController (float w, float h, CameraBase& camera) :
+        MouseDraggerBase(),
         _width(w), _height(h),
         _camera(camera)
     {}

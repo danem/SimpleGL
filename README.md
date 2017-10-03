@@ -14,9 +14,11 @@ or used with other OpenGL libraries and frameworks.
 // Optional helper library containing camera class, meshes, etc...
 #include <SimpleGL/helpers/SimpleGLHelpers.h>
 
+using sgl::helper::Context;
+using sgl::helper::MeshResource;
 
 int main () {
-    sgl::Context ctx{500,500,"instancing test"};
+    Context ctx{500,500,"instancing test"};
     sgl::Shader shader = sgl::loadShader("instanced_vs.glsl", "fs.glsl");
 
     std::vector<glm::vec3> offsets;
@@ -29,7 +31,7 @@ int main () {
     // Create a fixed size OpenGL GL_ARRAY_BUFFER with the contents of offsets.
     // sizeof(ArrayBuffer<glm::vec3>) == sizeof(GLuint)
     sgl::ArrayBuffer<glm::vec3> offsetsBuf{offsets};
-    sgl::MeshResource mesh = sgl::createPlane();
+    MeshResource mesh = sgl::helper::createPlane();
     
     // Add new buffer to our VAO
     sgl::vertexAttribBuilder(mesh,mesh.attribs)

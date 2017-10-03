@@ -189,7 +189,9 @@ private:
 
 public:
     MouseDraggerBase (int dragButton = MOUSE_BTN_LEFT) :
+        _isDragging(false),
         _dragButton(dragButton)
+
     {}
 
     // MouseHandler

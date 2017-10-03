@@ -75,6 +75,7 @@ inline void sglInitialize (int major, int minor) {
 #define SGL_VERTEXARRAY_SUPPORTED      sgl::config::sglOpenglVersion(3,0)
 #define SGL_UNIFORMBLOCK_SUPPORTED     sgl::config::sglOpenglVersion(3,3)
 #define SGL_PROGRAMPIPELINES_SUPPORTED sgl::config::sglOpenglVersion(4,1)
+#define SGL_TEXSTORAGE_SUPPORTED       sgl::config::sglOpenglVersion(4,2)
 #define SGL_COMPUTESHADER_SUPPORTED    sgl::config::sglOpenglVersion(4,3)
 #define SGL_BUFFERSTORAGE_SUPPORTED    sgl::config::sglOpenglVersion(4,4)
 #define SGL_DEBUGLOG_SUPPORTED         sgl::config::__sglOpenGLState__.debuglogSupported

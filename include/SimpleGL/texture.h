@@ -19,6 +19,7 @@ namespace detail {
         GLenum wrap_r = GL_CLAMP_TO_EDGE;
         GLenum min_filter = GL_NEAREST;
         GLenum mag_filter = GL_LINEAR;
+        GLsizei levels = 0;
     };
 
     template <GLenum kind, class T = GLenum>
@@ -70,45 +71,80 @@ namespace detail {
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex1D<kind>> {
+        static inline void allocate (const GLTextureInfo<kind>& info) {
+            if (SGL_TEXSTORAGE_SUPPORTED) {
+                glTexStorage1D(kind, info.levels, info.iformat, info.width);
+                sglDbgLogVerbose("glTexStorage1D(%d, %lu, %d, %d)\n", kind, info.levels, info.iformat, info.width);
+            }
+            else allocateMut(info);
+        }
 
-        static void write (const void* data, const GLTextureInfo<kind>& info) {
+        static inline void allocateMut (const GLTextureInfo<kind>& info) {
+            write(NULL,info);
+        }
+
+        static inline void write (const void* data, const GLTextureInfo<kind>& info) {
             glTexImage1D(kind, 0, info.iformat, info.width, 0, info.format, info.data_type, data);
+            sglDbgLogVerbose("glTexImage1D(%d, 0, %d, %d, 0, %d, %d, NULL)\n", kind, info.iformat, info.width, info.format, info.data_type);
         }
         
-        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0) {
+        static inline void update (const void* data, const GLTextureInfo<kind>& info, int x = 0) {
             glTexSubImage1D(kind, 0, x, info.width, info.format, info.data_type, data);
+            sglDbgLogVerbose("glTexSubImage1D(%d, 0, %d, %d, %d, %d, %p)\n", kind, x, info.width, info.format, info.data_type, data);
         }
     };
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex2D<kind>> {
-        static void write (const void* data, const GLTextureInfo<kind>& info) {
+        static inline void allocate (const GLTextureInfo<kind>& info) {
+            if (SGL_TEXSTORAGE_SUPPORTED) {
+                glTexStorage2D(kind, info.levels, info.iformat, info.width, info.height);
+            } else allocateMut(info);
+        }
+
+        static inline void allocateMut (const GLTextureInfo<kind>& info) {
+            write(NULL,info);
+        }
+
+        static inline void write (const void* data, const GLTextureInfo<kind>& info) {
             glTexImage2D(kind, 0, info.iformat, info.width, info.height, 0, info.format, info.data_type, data);
         }
 
-        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
+        static inline void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
             glTexSubImage2D(kind, 0, x, y, info.width, info.height, info.format, info.data_type, data);
         }
     };
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex2DArray<kind>> {
-        static void write (const void* data, const GLTextureInfo<kind>& info) {
-            glTexImage2D(kind, 0, info.iformat, info.width, info.height, 0, info.format, info.data_type, data);
+        static inline void allocate (const GLTextureInfo<kind>& info) {
+            if (SGL_TEXSTORAGE_SUPPORTED) {
+                glTexStorage3D(kind, info.levels, info.iformat, info.width, info.height, info.length);
+            } else allocateMut(info);
         }
 
-        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
-            glTexSubImage2D(kind, 0, x, y, info.width, info.height, info.format, info.data_type, data);
+        static inline void allocateMut (const GLTextureInfo<kind>& info) {
+            write(NULL,info);
+        }
+
+        static inline void write (const void* data, const GLTextureInfo<kind>& info) {
+            glTexImage3D(kind, 0, info.iformat, info.width, info.height, info.length, 0, info.format, info.data_type, data);
+        }
+
+        static inline void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
+            glTexSubImage3D(kind, 0, x, y, info.width, info.height, info.length, info.format, info.data_type, data);
         }
     };
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex3D<kind>> {
-        static void write (const void* data, const GLTextureInfo<kind>& info) {
+
+
+        static inline void write (const void* data, const GLTextureInfo<kind>& info) {
             glTexImage3D(kind, 0, info.iformat, info.width, info.height, info.depth, 0, info.format, info.data_type, data);
         }
 
-        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0, int z = 0) {
+        static inline void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0, int z = 0) {
             glTexSubImage3D(kind, 0, x, y, z, info.width, info.height, info.depth, info.format, info.data_type, data);
         }
     };
@@ -338,7 +374,7 @@ public:
     using detail::TextureBuilderBase<TextureBuilder<GL_TEXTURE_CUBE_MAP>>::wrap;
     TextureBuilder<GL_TEXTURE_CUBE_MAP>& wrap (int s, int t, int r) = delete;
 
-    TextureBuilder<GL_TEXTURE_CUBE_MAP>& addImage (const char * data, int w, int h, GLenum target = GL_DONT_CARE) {
+    TextureBuilder<GL_TEXTURE_CUBE_MAP>& addImage (const uint8_t * data, int w, int h, GLenum target = GL_DONT_CARE) {
         _width = w;
         _height = h;
         if (target == GL_DONT_CARE) target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + _imageCount;
