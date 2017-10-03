@@ -5,9 +5,15 @@ faster and less error prone without sacraficing speed or the full range of featu
 OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL applications
 or used with other OpenGL libraries and frameworks.
 ```c++
-#include <SimpleGL/SimpleGL.h>
 #include <vector>
 #include <glm/glm.hpp>
+
+// Core SimpleGL Library
+#include <SimpleGL/SimpleGL.h>
+
+// Optional helper library containing camera class, meshes, etc...
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
+
 
 int main () {
     sgl::Context ctx{500,500,"instancing test"};
@@ -62,9 +68,9 @@ int main () {
 
 ### Dependencies
 
-* GLEW or libepoxy
-* GLFW 3+ (optional)
-* GLM (optional)
+* libepoxy
+* GLFW 3+ (optional: needed for helper library and example projects)
+* GLM (optional: needed for helper library and example projects)
 
 ### Compatibility
 
