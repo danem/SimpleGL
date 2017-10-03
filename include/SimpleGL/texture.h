@@ -3,7 +3,7 @@
 #include "sglconfig.h"
 #include "resource.h"
 #include "utils.h"
-#include <iostream>
+#include <initializer_list>
 
 
 namespace sgl {
@@ -43,6 +43,15 @@ namespace detail {
     };
 
     template <GLenum kind>
+    struct GLTextureInfo<kind, traits::IfTex2DArray<kind>> : GLTextureInfoBase {
+        int width, height, length;
+        GLTextureInfo () : GLTextureInfoBase() {}
+        GLTextureInfo (int w, int h, int length) : width(w), height(h), length(length), GLTextureInfoBase() {}
+        GLTextureInfo (int w, int h, int length, GLTextureInfoBase& info) : width(w), height(h), length(length), GLTextureInfoBase(info) {}
+        size_t size () const { return width * height * sgl::traits::formatSize(iformat); }
+    };
+
+    template <GLenum kind>
     struct GLTextureInfo<kind, traits::IfTex3D<kind>> : GLTextureInfoBase {
         int width, height, depth;
         GLTextureInfo () : GLTextureInfoBase() {}
@@ -50,6 +59,11 @@ namespace detail {
         GLTextureInfo (int w, int h, int d, GLTextureInfoBase& info) : width(w), height(h), depth(d), GLTextureInfoBase(info) {}
         size_t size () const { return width * height * depth * sgl::traits::formatSize(iformat); }
     };
+
+    using GLTextureInfo1D      = GLTextureInfo<GL_TEXTURE_1D>;
+    using GLTextureInfo2D      = GLTextureInfo<GL_TEXTURE_2D>;
+    using GLTextureInfo2DArray = GLTextureInfo<GL_TEXTURE_CUBE_MAP>;
+    using GLTextureInfo3D      = GLTextureInfo<GL_TEXTURE_3D>;
 
     template <GLenum kind, class T = GLenum>
     struct GLTextureInterface;
@@ -68,6 +82,17 @@ namespace detail {
 
     template <GLenum kind>
     struct GLTextureInterface<kind, traits::IfTex2D<kind>> {
+        static void write (const void* data, const GLTextureInfo<kind>& info) {
+            glTexImage2D(kind, 0, info.iformat, info.width, info.height, 0, info.format, info.data_type, data);
+        }
+
+        static void update (const void* data, const GLTextureInfo<kind>& info, int x = 0, int y = 0) {
+            glTexSubImage2D(kind, 0, x, y, info.width, info.height, info.format, info.data_type, data);
+        }
+    };
+
+    template <GLenum kind>
+    struct GLTextureInterface<kind, traits::IfTex2DArray<kind>> {
         static void write (const void* data, const GLTextureInfo<kind>& info) {
             glTexImage2D(kind, 0, info.iformat, info.width, info.height, 0, info.format, info.data_type, data);
         }
@@ -141,13 +166,15 @@ namespace detail {
         }
     };
 
-    unsigned char * loadTexture2D (const char * path, int * width, int * height, int * channels);
-    void freeTexture2D (unsigned char * data);
 } // end namespace
+
 
 /**
 * Texture provides a wrapper over an opengl texture object.
 */
+
+ // TODO: Rework texture constructor. Also, reconsider storing all of the texture info along with
+// the textures.
 template <GLenum kind>
 class Texture : public GLResource<kind> {
 private:
@@ -161,30 +188,39 @@ private:
     }
 
 public:
-    const detail::GLTextureInfo<kind> attrs;
+    detail::GLTextureInfo<kind> attrs;
 
-    Texture (detail::GLTextureInfo<kind>& info) :
-        attrs(info),
-        GLResource<kind>()
+    Texture () {}
+
+    // TODO: The write parameter is a hack. reconsider this.
+    Texture (detail::GLTextureInfo<kind>& info, bool write = true) :
+        GLResource<kind>(),
+        attrs(info)
     {
-        this->bind();
-        detail::GLTextureInterface<kind>::write(nullptr,attrs);
-        applyParams();
-        this->unbind();
-        sglDbgCatchGLError();
+        initialize(nullptr, attrs, write);
     }
 
     Texture (const void* data, detail::GLTextureInfo<kind>& info) :
         attrs(info),
         GLResource<kind>()
     {
+        initialize(data, attrs, true);
+    }
+
+    void initialize (const void * data, detail::GLTextureInfo<kind>& info, bool write = true) {
+        this->attrs = info;
         this->bind();
-        detail::GLTextureInterface<kind>::write(data,attrs);
+        if (write) detail::GLTextureInterface<kind>::write(data,attrs);
         applyParams();
         this->unbind();
         sglDbgCatchGLError();
     }
 };
+
+using Texture1D             = Texture<GL_TEXTURE_1D>;
+using Texture2D             = Texture<GL_TEXTURE_2D>;
+using Texture3D             = Texture<GL_TEXTURE_3D>;
+using TextureCubeMap        = Texture<GL_TEXTURE_CUBE_MAP>;
 
 
 /**
@@ -244,6 +280,7 @@ public:
         return {info};
     }
 
+    /*
     Texture<kind> build (const char * imagename) {
         int width, height, channels;
         unsigned char* data = detail::loadTexture2D(imagename, &width, &height, &channels);
@@ -252,6 +289,7 @@ public:
         detail::freeTexture2D(data);
         return tex;
     }
+    */
 
     Texture<kind> build (uint8_t * data, size_t width, size_t height) {
         detail::GLTextureInfo<kind> info(width, height, this->_info);
@@ -275,20 +313,43 @@ public:
     }
 };
 
-//template <GLenum kind> using MTexture = GLResourceM<Texture<kind>>;
+template <>
+class TextureBuilder<GL_TEXTURE_CUBE_MAP, GLenum> :  public detail::TextureBuilderBase<TextureBuilder<GL_TEXTURE_CUBE_MAP>> {
+private:
+    TextureCubeMap _result;
+    uint32_t _imageCount;
+    int _width, _height;
 
-using Texture1D        = Texture<GL_TEXTURE_1D>;
-//using MTexture1D       = MTexture<GL_TEXTURE_1D>;
+public:
+    TextureBuilder () :
+        detail::TextureBuilderBase<TextureBuilder<GL_TEXTURE_CUBE_MAP>>(),
+        _imageCount(0)
+    {
+        _result.bind();
+    }
 
-using Texture2D        = Texture<GL_TEXTURE_2D>;
-//using MTexture2D       = MTexture<GL_TEXTURE_2D>;
+    using detail::TextureBuilderBase<TextureBuilder<GL_TEXTURE_CUBE_MAP>>::wrap;
 
-using Texture3D        = Texture<GL_TEXTURE_3D>;
-//using MTexture3D       = MTexture<GL_TEXTURE_3D>;
+    TextureBuilder<GL_TEXTURE_CUBE_MAP, GLenum>& addImage (const char * data, int w, int h) {
+        _width = w;
+        _height = h;
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + _imageCount,
+                     0, _info.iformat, w, h, 0, _info.format, _info.data_type, data);
+        _imageCount += 1;
+        return *this;
+    }
 
-using TextureBuilder1D = TextureBuilder<GL_TEXTURE_1D>;
-using TextureBuilder2D = TextureBuilder<GL_TEXTURE_2D>;
-using TextureBuilder3D = TextureBuilder<GL_TEXTURE_3D>;
+    TextureCubeMap build () {
+        detail::GLTextureInfo2DArray info{_width, _height,static_cast<int>(_imageCount), _info};
+        _result.initialize(nullptr, info, false);
+        return _result;
+    }
+};
+
+using TextureBuilder1D      = TextureBuilder<GL_TEXTURE_1D>;
+using TextureBuilder2D      = TextureBuilder<GL_TEXTURE_2D>;
+using TextureBuilder3D      = TextureBuilder<GL_TEXTURE_3D>;
+using TextureBuilderCubeMap = TextureBuilder<GL_TEXTURE_CUBE_MAP>;
 
 template <GLenum kind>
 void updateTexture (Texture<kind>& tex, const void * data) {

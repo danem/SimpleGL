@@ -206,11 +206,6 @@ namespace traits {
     template <GLenum v, class T = GLenum>
     using IfBuffer = typename std::enable_if<traits::IsBuffer<v>::value, T>::type;
 
-    template <GLenum v>
-    using IsRenderBuffer = traits::one_of_v<GLenum, v, GL_RENDERBUFFER>;
-
-    template <GLenum v, class T = GLenum>
-    using IfRenderBuffer = typename std::enable_if<traits::IsRenderBuffer<v>::value, T>::type;
 
     // TODO: Yes, I know GL_VERTEX_ARRAY is used for older versions of OpenGL
     template <GLenum v>
@@ -229,11 +224,20 @@ namespace traits {
     using IfFramebuffer = typename std::enable_if<traits::IsFramebuffer<v>::value, T>::type;
 
     template <GLenum v>
+    using IsRenderBuffer = traits::one_of_v<GLenum, v, GL_RENDERBUFFER>;
+
+    template <GLenum v, class T = GLenum>
+    using IfRenderBuffer = typename std::enable_if<traits::IsRenderBuffer<v>::value, T>::type;
+
+    template <GLenum v>
     using IsTexture = traits::one_of_v<GLenum, v,
         GL_TEXTURE_1D, GL_PROXY_TEXTURE_1D,
         GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D,
         GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+        GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
         GL_TEXTURE_3D>;
+
 
     template <GLenum v, class T = GLenum>
     using IfTexture = typename std::enable_if<traits::IsTexture<v>::value, T>::type;
@@ -245,7 +249,10 @@ namespace traits {
     using IfTex1D = typename std::enable_if<traits::IsTex1D<v>::value, T>::type;
 
     template <GLenum v>
-    using IsTex2D = traits::one_of_v<GLenum, v, GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_RECTANGLE>;
+    using IsTex2D = traits::one_of_v<GLenum, v,
+        GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_RECTANGLE,
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+        GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z>;
 
     template <GLenum v, class T = GLenum>
     using IfTex2D = typename std::enable_if<traits::IsTex2D<v>::value, T>::type;

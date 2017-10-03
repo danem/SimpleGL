@@ -26,7 +26,7 @@ int main () {
     sgl::MeshResource mesh = sgl::createPlane();
     
     // Add new buffer to our VAO
-    sgl::vertexAttribBuilder(mesh,3)
+    sgl::vertexAttribBuilder(mesh,mesh.attribs)
         .addBuffer(offsetsBuf)
         .commit();
 
@@ -51,7 +51,7 @@ int main () {
 
 ### Features:
 
-* Near zero overhead "typesafe" opengl object wrappers
+* Zero overhead "typesafe" opengl object wrappers
 * Opengl object lifetime managment
 * Convenient shader compilation and access API
 * Builtin performance counters and debug logs for < OpenGL 4.3 (eg: OSX)

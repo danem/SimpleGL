@@ -843,18 +843,25 @@ public:
     {}
 
     template <GLenum res>
-    traits::IfTex1D<res,void> attachTexture (GLResource<res>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+    traits::IfTex1D<res,void> attachTexture (GLResource<res>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0, GLint level = 0) {
         this->bind();
-        glFramebufferTexture1D(kind, attachment, res, (GLuint)texture, 0);
+        glFramebufferTexture1D(kind, attachment, res, texture, level);
     }
 
     template <GLenum res>
-    traits::IfTex2D<res,void> attachTexture (GLResource<res>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+    traits::IfTex2D<res,void> attachTexture (GLResource<res>& texture, GLenum attachment = GL_COLOR_ATTACHMENT0, GLint level = 0) {
         this->bind();
-        glFramebufferTexture2D(kind, attachment, res, (GLuint)texture, 0);
+        glFramebufferTexture2D(kind, attachment, res, texture, level);
     }
 
-    void attachRenderBuffer (RenderBuffer& buffer, GLenum attachment = GL_COLOR_ATTACHMENT0) {
+    template <GLenum res>
+    traits::IfTex3D<res,void> attachTexture (GLResource<res>& texture, GLint layer = 0, GLenum attachment = GL_COLOR_ATTACHMENT0, GLint level = 0) {
+        this->bind();
+        glFramebuffer3D(kind, attachment, res, texture, level, layer);
+    }
+
+
+    void attachTexture (RenderBuffer& buffer, GLenum attachment = GL_COLOR_ATTACHMENT0) {
         this->bind();
         glFramebufferRenderbuffer(kind, attachment, buffer.type, buffer);
     }
