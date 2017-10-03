@@ -4,6 +4,62 @@ SimpleGL is a very thin C++11 wrapper over OpenGL. Its aim is to make OpenGL dev
 faster and less error prone without sacraficing speed or the full range of features
 OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL applications
 or used with other OpenGL libraries and frameworks.
+
+```c++
+std::vector<float> data(1000);            //
+std::iota(data.begin(), data.end(), 0);   //
+                                          //
+sgl::GLResource<GL_ARRAY_BUFFER> buffer1; // GLuint buffer1;
+sgl::bufferData<float>(buffer1, data);    // glGenBuffers(1,&buffer1);
+                                          // glBindBuffer(GL_ARRAY_BUFFER, buffer1);
+                                          // glBufferData(GL_ARRAY_BUFFER, sizeof(float)*data.size(), data.data(), GL_DYNAMIC_DRAW);
+                                          //
+                                          //
+buffer.bind();                            // GLResource can be used interchangably with GLuint
+assert(sizeof(buffer) == sizeof(GLuint)); // 
+glDeleteBuffers(1,&buffer);               //
+                                          //
+                                          // We can introduce some type aliases to make things cleaner. 
+                                          // All SGL Types are just variations on GLResource.
+                                          //
+sgl::ArrayBuffer<int> buffer2{data};      // GLuint buffer2;
+                                          // glGenBuffers(1, &buffer2);
+                                          // glBindBuffer(GL_ARRAY_BUFFER, buffer2);
+                                          // glBufferStorage(GL_ARRAY_BUFFER, sizeof(float)*data.size(), data.data(), GL_MAP_READ_BIT);
+                                          //
+                                          // Now add a VAO
+                                          //
+sgl::VertexArray vao;                     // GLuint vao;
+sgl::VertexAttribBuilder(vao)             // glGenVertexArrays(1,&vao);
+    .addBuffer<float,float>(buffer2)      // glBindVertexArray(vao);
+    .commit();                            // glBindBuffer(GL_ARRAY_BUFFER, buffer2);
+                                          // glEnableVertexAttribArray(0);
+                                          // glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+                                          // glEnableVertexAtrribArray(1);
+                                          // glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (GLvoid*)sizeof(float));
+                                          // glBindVertexArray(0);
+                                          //
+                                          // 
+Texture2D tex = TextureBuilder2D()        // GLuint tex;
+    .format(GL_R, GL_R8)                  // glGenTextures(1,&tex);
+    .build(100,100);                      // glBindTexture(GL_TEXTURE_2D, tex);
+                                          // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                                          // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                                          // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                                          // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                                          // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, 100, 100, 0, GL_R, GL_UNSIGNED_BYTE, NULL);
+                                          //
+                                          //
+{ auto res = resource_guard(buffer1); }   // Ensure a resource is freed at the end of a block
+{ auto bg = bind_guard(buffer2); }        // Ensure a resource is unbound at the end of a block
+                                          //
+void withBuffer (ArrayBuffer<int>& buf);  // Typesafe interfaces
+                                          //
+                                          //
+                                          // And much more!                          
+```
+Or using the helper library:                                       
+
 ```c++
 #include <vector>
 #include <glm/glm.hpp>
