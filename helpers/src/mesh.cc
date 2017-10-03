@@ -1,5 +1,4 @@
-#ifdef SGL_USE_GLM
-#include <SimpleGL/mesh.h>
+#include <SimpleGL/helpers/mesh.h>
 
 using namespace sgl;
 
@@ -25,7 +24,7 @@ MeshResource::MeshResource (MeshData& data) :
 
     sgl::VertexAttribBuilder(*this)
         .addElementBuffer(EBO)
-        .addBuffer<glm::vec3, glm::vec2, glm::vec3>(VBO)
+        .addBuffer<sgl::vec3f, sgl::vec2f, sgl::vec3f>(VBO)
         .commit();
 }
 
@@ -61,6 +60,4 @@ sgl::MeshResource sgl::createPlane (int divs) {
 
 
 
-
-#endif
 

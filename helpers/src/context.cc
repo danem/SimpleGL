@@ -1,4 +1,4 @@
-#include <SimpleGL/context.h>
+#include <SimpleGL/helpers/context.h>
 #include <SimpleGL/utils.h>
 #include <stdexcept>
 #include <iostream>

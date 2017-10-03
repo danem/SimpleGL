@@ -1,4 +1,4 @@
-#include <SimpleGL/event.h>
+#include <SimpleGL/helpers/event.h>
 #include <iostream>
 
 using namespace sgl;

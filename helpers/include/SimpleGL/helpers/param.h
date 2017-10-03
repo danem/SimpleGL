@@ -3,9 +3,7 @@
 #include <type_traits>
 #include <iostream>
 
-#ifdef SGL_USE_GLM
-#    include <glm/glm.hpp>
-#endif
+#include <glm/glm.hpp>
 
 namespace sgl {
 
@@ -34,7 +32,6 @@ namespace detail {
 } // end namespace
 
 
-#ifdef SGL_USE_GLM
 // ParamPrinter
 template <class T>
 void VecPrinter (const char * name, const T& value){
@@ -46,7 +43,6 @@ void VecPrinter (const char * name, const T& value){
     }
     std::cout << "}" << std::endl;
 }
-#endif
 
 template <
     class V,

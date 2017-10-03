@@ -1,9 +1,7 @@
 #pragma once
-#ifdef SGL_USE_GLM
-
-#include "sglconfig.h"
-#include "traits.h"
-#include "resource.h"
+#include <SimpleGL/sglconfig.h>
+#include <SimpleGL/traits.h>
+#include <SimpleGL/resource.h>
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -55,4 +53,3 @@ public:
 MeshResource createPlane (int divs = 1);
 
 } // end namespace
-#endif

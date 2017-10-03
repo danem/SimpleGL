@@ -1,4 +1,4 @@
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
 #include <iostream>
 
 #include <glm/vec3.hpp> 

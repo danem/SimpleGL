@@ -1,6 +1,4 @@
 #pragma once
-#ifdef SGL_USE_GLM
-
 #include "event.h"
 
 #include <glm/vec3.hpp> 
@@ -109,4 +107,3 @@ public:
 
 } // end namespace
 
-#endif

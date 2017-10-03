@@ -1,5 +1,5 @@
 #define SGL_DEBUG 2
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
 
 int main () {
     sgl::Context ctx{500, 500, "Managed resource test"};

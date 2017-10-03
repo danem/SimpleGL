@@ -1,4 +1,4 @@
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
 #include "sgl-test.h"
 #include <glm/glm.hpp>
 #include <iostream>
@@ -41,7 +41,7 @@ int main () {
 
     sgl::VertexArray vao;
     sgl::vertexAttribBuilder(vao)
-        .addBuffer<glm::vec3, float>(pcb)
+        .addBuffer<sgl::vec3f, float>(pcb)
         .commit();
     
     glViewport(0,0, ctx.attrs.width, ctx.attrs.height); 

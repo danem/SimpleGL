@@ -1,7 +1,5 @@
-#ifdef SGL_USE_GLM
-
-#include <SimpleGL/camera.h>
 #include <SimpleGL/utils.h>
+#include <SimpleGL/helpers/camera.h>
 #include "glm/ext.hpp"
 
 using namespace sgl;
@@ -88,5 +86,3 @@ void CameraController::onScroll(double sx, double sy) {
     _camera.update();
 }
 
-
-#endif

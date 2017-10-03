@@ -1,4 +1,4 @@
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
 #include "sgl-test.h"
 #include <vector>
 #include <glm/glm.hpp>
@@ -18,7 +18,7 @@ int main () {
     sgl::MeshResource mesh = sgl::createPlane();
 
     sgl::VertexAttribBuilder(mesh,3)
-        .addBuffer(offsetsBuf,1)
+        .addBuffer<sgl::vec2f>(offsetsBuf,1)
         .commit();
 
     glViewport(0,0,ctx.attrs.width,ctx.attrs.height);

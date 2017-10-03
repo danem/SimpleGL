@@ -1,4 +1,5 @@
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
+
 #include "sgl-test.h"
 
 int main () {

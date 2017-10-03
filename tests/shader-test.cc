@@ -1,4 +1,4 @@
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
 
 int main () {
     sgl::Context ctx{500,500,"shader test"};

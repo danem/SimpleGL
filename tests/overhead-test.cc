@@ -1,4 +1,4 @@
-#include <SimpleGL/SimpleGL.h>
+#include <SimpleGL/helpers/SimpleGLHelpers.h>
 
 int main () {
     // Meant to look at under decompiler

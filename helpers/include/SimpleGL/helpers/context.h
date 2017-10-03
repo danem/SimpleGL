@@ -1,10 +1,13 @@
 #pragma once
 
-#include "sglconfig.h"
+#include <SimpleGL/sglconfig.h>
 #include "event.h"
 
 #include <vector>
 #include <string>
+
+#define GLFW_STATIC
+#include <GLFW/glfw3.h>
 
 
 namespace sgl {
