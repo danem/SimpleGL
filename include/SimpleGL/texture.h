@@ -243,6 +243,13 @@ using TextureCubeMap        = Texture<GL_TEXTURE_CUBE_MAP>;
 *       .wrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE)
 *       .build(500,500,500);
 *
+*   sgl::TextureCubeMap cubemap = sgl::TextureCubeMapBuilder()
+*       .format(GL_RGBA,GL_RGBA)
+*       .addImage(image1, w, h)
+*       .addImage(image2, w, h)
+*       .addImage(image3, w, h)
+*       .build();
+*
 */
 
 template <GLenum kind, class T = GLenum>
@@ -329,19 +336,21 @@ public:
     }
 
     using detail::TextureBuilderBase<TextureBuilder<GL_TEXTURE_CUBE_MAP>>::wrap;
+    TextureBuilder<GL_TEXTURE_CUBE_MAP>& wrap (int s, int t, int r) = delete;
 
-    TextureBuilder<GL_TEXTURE_CUBE_MAP, GLenum>& addImage (const char * data, int w, int h) {
+    TextureBuilder<GL_TEXTURE_CUBE_MAP>& addImage (const char * data, int w, int h, GLenum target = GL_DONT_CARE) {
         _width = w;
         _height = h;
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + _imageCount,
-                     0, _info.iformat, w, h, 0, _info.format, _info.data_type, data);
+        if (target == GL_DONT_CARE) target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + _imageCount;
+        glTexImage2D(target, 0, _info.iformat, w, h, 0, _info.format, _info.data_type, data);
         _imageCount += 1;
         return *this;
     }
 
     TextureCubeMap build () {
-        detail::GLTextureInfo2DArray info{_width, _height,static_cast<int>(_imageCount), _info};
+        detail::GLTextureInfo2DArray info{_width, _height, static_cast<int>(_imageCount), _info};
         _result.initialize(nullptr, info, false);
+        _result.unbind();
         return _result;
     }
 };

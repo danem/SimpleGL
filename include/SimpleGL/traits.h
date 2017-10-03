@@ -33,6 +33,12 @@ namespace sgl {
     template <class T>
     struct SGLMat4x4 { T values[16]; };
 
+    using vec2i = SGLVec2<int>;
+    using vec3i = SGLVec3<int>;
+    using vec4i = SGLVec4<int>;
+    using mat3i = SGLMat3x3<int>;
+    using mat4i = SGLMat4x4<int>;
+
     using vec2f = SGLVec2<float>;
     using vec3f = SGLVec3<float>;
     using vec4f = SGLVec4<float>;
@@ -47,6 +53,12 @@ namespace sgl {
 
 namespace traits {
 
+    /**
+    * Calculates the total size of a variadic template list
+    *
+    * ex:
+    * sgl::param_size<int,char,float[3]>::size == sizeof(int) + sizeof(char) + sizeof(float[3])
+    */
     template <class ...Ts>
     struct param_size;
 
@@ -60,11 +72,24 @@ namespace traits {
         static const size_t size = sizeof(T);
     };
 
+    /**
+    * Brings boolean expression to type level
+    *
+    * ex:
+    * using Foo = sgl::traits::eval<1==2>;
+    */
     template <bool v>
     struct eval {
         static const bool value = v;
     };
 
+    /**
+    * Checks of a list of template paramters are all equal.
+    *
+    * ex:
+    * sgl::traits::are_same<int,bool,int>::value == false;
+    * sgl::traits::are_same<int,int,int>::value == true;
+    */
     template <class ...T>
     struct are_same;
 
@@ -131,6 +156,7 @@ namespace traits {
     };
 
     // one_of_v checks whether a value of type T is in a list of other values
+    // Core of SimpleGL's code resuse.
     template <class T, T ...xs>
     struct one_of_v;
 
@@ -158,17 +184,24 @@ namespace traits {
     template <class T, T v, T hi, T low>
     using in_range = typename std::enable_if<(v >= low && v < hi), T>::type;
 
-    // Useful for optimizing space usage of precomputed lookup tables
-    // eg: At compile time the "optimal" representation for "indices" will be chosen
-    // template <long items>
-    // struct foo {
-    //     using type = number_type<items>;
-    //     type indices[items];  
-    // };
+    /**
+    * Useful for optimizing space usage of precomputed lookup tables
+    *
+    * ex:
+    * If know the maximum value in an array of items at compile time
+    * we can choose the smallest type capable of representing it.
+    *
+    * template <long items>
+    * struct foo {
+    *     using type = number_type<items>;
+    *     type indices[items];
+    * };
+    */
 
     // For some reason we can't use (1<<32) in templates
-    const long _32_bits = 0xffffffff;
-    const long _64_bits = 0xffffffffffffffff;
+    static const long _32_bits = 0xffffffff;
+    static const long _64_bits = 0xffffffffffffffff;
+
 
     template <long v, class T = long>
     struct number_type_t;
