@@ -204,6 +204,14 @@ namespace detail {
 
 } // end namespace
 
+using TextureLoader = const unsigned char * (const char * path, int * width, int * height, int * channels, int);
+using TextureFreer  = void (const unsigned char *);
+
+struct TextureAccessor {
+    TextureLoader loader;
+    TextureFreer freer;
+};
+
 
 /**
 * Texture provides a wrapper over an opengl texture object.
@@ -323,16 +331,14 @@ public:
         return {info};
     }
 
-    /*
-    Texture<kind> build (const char * imagename) {
+    Texture<kind> build (const char * imagename, TextureLoader loader, TextureFreer freer) {
         int width, height, channels;
-        unsigned char* data = detail::loadTexture2D(imagename, &width, &height, &channels);
+        const unsigned char* data = loader(imagename, &width, &height, &channels, 0);
         detail::GLTextureInfo<kind> info(width, height, this->_info);
         Texture<kind> tex(data,info);
-        detail::freeTexture2D(data);
+        freer(data);
         return tex;
     }
-    */
 
     Texture<kind> build (uint8_t * data, size_t width, size_t height) {
         detail::GLTextureInfo<kind> info(width, height, this->_info);
@@ -388,6 +394,21 @@ public:
         _result.initialize(nullptr, info, false);
         _result.unbind();
         return _result;
+    }
+
+    TextureCubeMap build (TextureAccessor& loader, std::vector<const char *> paths) {
+        return build(loader, &paths[0], paths.size());
+    }
+
+    TextureCubeMap build (TextureAccessor& loader, const char** paths, size_t len){
+        for (size_t i = 0; i < len; i++){
+            int w, h, c;
+            const unsigned char * data = loader.loader(paths[i], &w, &h, &c, 0);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, _info.iformat, w, h, 0, _info.format, _info.data_type, data);
+            loader.freer(data);
+            _result.unbind();
+            return _result;
+        }
     }
 };
 
