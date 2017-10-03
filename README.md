@@ -10,7 +10,7 @@ std::vector<float> data(1000);            //
 std::iota(data.begin(), data.end(), 0);   //
                                           //
 sgl::GLResource<GL_ARRAY_BUFFER> buffer1; // GLuint buffer1;
-sgl::bufferData<float>(buffer1, data);    // glGenBuffers(1,&buffer1);
+sgl::bufferData(buffer1, data);           // glGenBuffers(1,&buffer1);
                                           // glBindBuffer(GL_ARRAY_BUFFER, buffer1);
                                           // glBufferData(GL_ARRAY_BUFFER, sizeof(float)*data.size(), data.data(), GL_DYNAMIC_DRAW);
                                           //
@@ -54,7 +54,7 @@ Texture2D tex = TextureBuilder2D()        // GLuint tex;
 { auto res = resource_guard(buffer1); }   // Ensure a resource is freed at the end of a block
 { auto bg = bind_guard(buffer2); }        // Ensure a resource is unbound at the end of a block
                                           //
-void withBuffer (ArrayBuffer<int>& buf);  // Typesafe interfaces
+void withBuffer (ArrayBuffer<int>& buf);  // Typesafe interfaces with the same overhead as before.
                                           //
                                           //
                                           // And much more!                          
