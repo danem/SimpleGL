@@ -21,7 +21,7 @@ int main () {
     }
     
     // Create a fixed size OpenGL GL_ARRAY_BUFFER with the contents of offsets.
-    // sizeof(ArrayBuffer<glm::vec3> == sizeof(GLuint)
+    // sizeof(ArrayBuffer<glm::vec3>) == sizeof(GLuint)
     sgl::ArrayBuffer<glm::vec3> offsetsBuf{offsets};
     sgl::MeshResource mesh = sgl::createPlane();
     
