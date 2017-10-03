@@ -55,9 +55,6 @@ if(${SGL_DEBUG})
 endif()
 
 
-
-
-
 set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/SimpleGL.h
     ${INCLUDE_DIR}/SimpleGL/utils.h

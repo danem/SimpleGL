@@ -1,6 +1,7 @@
 #ifndef SGLCONFIG_H
 #define SGLCONFIG_H
 
+
 /**
 *
 * Compile Time configuration flags:
@@ -48,7 +49,11 @@
 
 #ifndef SGL_DEBUG
 #    define SGL_DEBUG 0
+#elif SGL_DEBUG >= 1
+// Needed for printing SGL configuration info
+#    include <iostream>
 #endif
+
 
 namespace sgl {
 namespace config {
@@ -68,7 +73,17 @@ namespace config {
 inline void sglInitialize (int major, int minor) {
     config::__sglOpenGLState__.version_major = major;
     config::__sglOpenGLState__.version_minor = minor;
+    if (sgl::config::sglOpenglVersion(4,4)) config::__sglOpenGLState__.debuglogSupported = true;
+    else {
+        // TODO: Check if the extension is available
+        config::__sglOpenGLState__.debuglogSupported = false;
+    }
+#if SGL_DEBUG >= 1
+    printf("SGL OpenGL Version %d.%d\n", major, minor);
+    printf("SGL Debug Log Supported: %d\n", config::__sglOpenGLState__.debuglogSupported);
+#endif
 }
+
 } // namespace
 
 #define SGL_RENDERBUFFER_SUPPORTED     sgl::config::sglOpenglVersion(3,0)

@@ -54,9 +54,9 @@ static void __handleKeyEvent (GLFWwindow* window, int key, int scancode, int act
 }
 
 
-void detail::getDefaultWindowConfig(detail::ContextConfig& config, int width, int height, const std::string& title) {
-    config.glVersionMajor = SGL_OPENGL_MAX_MAJOR;
-    config.glVersionMinor = SGL_OPENGL_MAX_MINOR;
+void detail::getDefaultWindowConfig(detail::ContextConfig& config, int width, int height, const std::string& title, int major, int minor) {
+    config.glVersionMajor = major;
+    config.glVersionMinor = minor;
     config.glProfile = GLProfile::CORE;
     config.resizable = false;
     config.decorated = true;
@@ -93,7 +93,7 @@ void Context::initialize () {
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLBOOL(attrs.doubleBuffer));
     glfwWindowHint(GLFW_FLOATING, GLBOOL(attrs.onTop));
     glfwWindowHint(GLFW_VISIBLE, GLBOOL(attrs.windowVisible));
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLBOOL(attrs.debug));
+    //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLBOOL(attrs.debug));
 
     _windowState = glfwCreateWindow(attrs.width, attrs.height, attrs.title.c_str(), nullptr, nullptr);    
     if (_windowState == nullptr) throw std::runtime_error("Failed to create GLFW window");

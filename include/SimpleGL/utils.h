@@ -112,7 +112,6 @@ static void initializeDebugging (const DebugConfig& config) {
 } // end namespace
 } // end namespace
 
-// Macros
 
 #define SGL_BOOL(v) ((v) ? GL_TRUE : GL_FALSE)
 
@@ -120,8 +119,8 @@ static void initializeDebugging (const DebugConfig& config) {
 
 // Check GL error, save it to input variable,
 // print error message, and optionally quit
-#define sglGetGLError(err,ignore) do {\
-       err = glGetError();\
+#define sglGetGLError(ignore) do {\
+       GLenum err = glGetError();\
        if (err != GL_NO_ERROR) {\
             const char * msg = sgl::util::glErrorToString(err);\
             printf("Error code %d at %s:%d: %s\n", err, __FILE__, __LINE__, msg);\
@@ -130,13 +129,10 @@ static void initializeDebugging (const DebugConfig& config) {
    } while (0);
 
 #define sglClearGLError() glGetError();
-#define sglCatchGLError() do { GLenum err; sglGetGLError(err,false); } while (0);
-#define sglCheckGLError() do { GLenum err; sglGetGLError(err,true); } while (0);
+#define sglCatchGLError() sglGetGLError(false);
+#define sglCheckGLError() sglGetGLError(true);
 
-#define sglCatchGLErrorLog(...) do { GLenum err; sglGetGLError(err,false); if (err != GL_NO_ERROR) sglDbgPrint(__VA_ARGS__); } while (0);
-#define sglCheckGLErrorLog(...) do { GLenum err; sglGetGLError(err,true); if (err != GL_NO_ERROR) sglDbgPrint(__VA_ARGS__); } while (0);
-
-#if SGL_DEBUG > 0
+#if SGL_DEBUG >= 1
 #    define sglDbgLog(...) sglDbgPrint(__VA_ARGS__)
 #    define sglDbgCatchGLError() sglCatchGLError()
 #    define sglDbgCatchGLErrorLog(...) sglCatchGLErrorLog(__VA_ARGS__)
@@ -146,24 +142,23 @@ static void initializeDebugging (const DebugConfig& config) {
 #    define sglDbgCatchGLErrorLog(...)
 #endif
 
-#if SGL_DEBUG >= 1
-#    define sglDbgLogVerbose(...) sglDbgPrint(__VA_ARGS__)
-#else
-#    define sglDbgLogVerbose(...)
-#endif
-
 #if SGL_DEBUG >= 2
-#    define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
+#    define sglDbgLogVerbose(...) sglDbgPrint(__VA_ARGS__)
 #    define sglDbgLogCreation(kind,len,dest) do { for(int i=0;i<len;i++){ sglDbgPrint("created resource %d:%d\n", kind,dest[i]); }} while(0);
 #    define sglDbgLogDeletion(kind,len,dest) do { for(int i=0;i<len;i++){ sglDbgPrint("deleted resource %d:%d\n", kind,dest[i]); }} while(0);
+#else
+#    define sglDbgLogVerbose(...)
+#    define sglDbgLogCreation(kind,len,dest)
+#    define sglDbgLogDeletion(kind,len,dest)
+#endif
+
+#if SGL_DEBUG >= 3
+#    define sglDbgLogVerbose2(...) sglDbgPrint(__VA_ARGS__)
 #    define sglDbgLogBind(kind,dest) do { sglDbgPrint("bound resource %d:%d\n",kind,dest); } while (0);
 #else
 #    define sglDbgLogVerbose2(...)
-#    define sglDbgLogCreation(kind,len,dest)
-#    define sglDbgLogDeletion(kind,len,dest)
 #    define sglDbgLogBind(kind,dest)
 #endif
-
 
 
 

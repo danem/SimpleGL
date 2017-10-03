@@ -100,7 +100,7 @@ public:
 
     GLint setTexture (const std::string& id, GLenum target, GLuint handle, int textureUnit);
 
-    void setUniformBlock (const char * id, GLResource<GL_UNIFORM_BUFFER>& ubo, GLuint unit = 0);
+    GLint setUniformBlock (const char * id, GLResource<GL_UNIFORM_BUFFER>& ubo, GLuint unit = 0);
 
 };
 

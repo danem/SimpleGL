@@ -37,7 +37,7 @@ namespace detail {
         bool debug;
     };
 
-    void getDefaultWindowConfig (ContextConfig& dest, int width = 0, int height = 0, const std::string& title = "");
+    void getDefaultWindowConfig (ContextConfig& dest, int width = 0, int height = 0, const std::string& title = "", int major = SGL_OPENGL_MAX_MAJOR, int minor = SGL_OPENGL_MAX_MINOR);
 } // namespace
 
 class Context {

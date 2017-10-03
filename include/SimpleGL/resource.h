@@ -99,32 +99,59 @@ namespace detail {
     struct GLBufferInterface<kind, traits::IfBuffer<kind>> {
         static void initialize (GLuint res, const char * data, size_t len, UsageType usage) {
             if (SGL_BUFFERSTORAGE_SUPPORTED) {
-                    glBufferStorage(kind, len, data, usage);
+                glBufferStorage(kind, len, data, usage);
+                sglDbgLogVerbose("%d:%d -> glBufferStorage(%d,%lu,%p,%d)\n", kind, res, kind, len, data, usage);
             } else {
-                    glBufferData(kind,len,data,usage);
+                glBufferData(kind,len,data,usage);
+                sglDbgLogVerbose("%d:%d -> glBufferData(%d,%lu,%p,%d) %d\n", kind, res, kind, len, data, usage, usage==GL_DYNAMIC_DRAW);
             }
-            sglDbgLogVerbose("Initializing immutable buffer %d:%d size: %lu", kind, res, len);
+            sglDbgCatchGLError();
         }
 
         static void initializeMut (GLuint res, const char * data, size_t len, GLenum usage) {
             glBufferData(kind,len,data,usage);
-            sglDbgLogVerbose("Initializing mutable buffer %d:%d size: %lu", kind, res, len);
+            sglDbgLogVerbose("%d:%d -> glBufferData(%d,%lu,%p,%d);\n", kind, res, kind, len, data, usage);
+            sglDbgCatchGLError();
         }
 
         static void update (GLuint res, const char * data, size_t start, size_t len) {
             glBufferSubData(kind,start,len,data);
-            sglDbgLogVerbose("Writing range %lu:%lu bytes to %d:%d", start, start+len, kind, res);
+            sglDbgLogVerbose("%d:%d -> glBufferSubData(%d,%lu,%lu,%p);\n", kind, res, kind, len, start, data);
+            sglDbgCatchGLError();
         }
 
     };
     template <GLenum kind>
     struct GLBufferInterface<kind, traits::IfRenderBuffer<kind>> {
     };
-
-
-
-
 } // end namespace
+
+template <GLenum kind>
+inline void bind (GLuint res) {
+    detail::GLInterface<kind>::bind(res);
+}
+
+template <GLenum kind>
+inline GLuint create () {
+    GLuint dest;
+    detail::GLInterface<kind>::create(1,&dest);
+    return dest;
+}
+
+template <GLenum kind>
+inline void create (size_t len, GLuint * dest) {
+    detail::GLInterface<kind>::create(len,dest);
+}
+
+template <GLenum kind>
+inline void destroy (GLuint res) {
+    detail::GLInterface<kind>::destroy(1,&res);
+}
+
+template <GLenum kind>
+inline void destroy (size_t len, GLuint* dest) {
+    detail::GLInterface<kind>::destroy(len,dest);
+}
 
 /**
  * Core abstraction for SimpleGL. This class is a zero overhead mechanism for
@@ -195,7 +222,7 @@ public:
     static const GLenum type = kind;
 
     GLResource ()  {
-        detail::GLInterface<kind>::create(1, &_id);
+        sgl::create<kind>(1, &_id);
     }
 
     GLResource (GLuint res) :
@@ -205,44 +232,18 @@ public:
     operator GLuint() const { return _id; }
 
     void bind () {
-        detail::GLInterface<kind>::bind(_id);
+        sgl::bind<kind>(_id);
     }
 
     void unbind () {
-        detail::GLInterface<kind>::bind(0);
+        sgl::bind<kind>(0);
     }
 
     void release () {
-        detail::GLInterface<kind>::destroy(1, &_id);
+        sgl::destroy<kind>(1,&_id);
     }
 };
 
-template <GLenum kind>
-inline void bind (GLuint res) {
-    detail::GLInterface<kind>::bind(res);
-}
-
-template <GLenum kind>
-inline GLuint create () {
-    GLuint dest;
-    detail::GLInterface<kind>::create(1,&dest);
-    return dest;
-}
-
-template <GLenum kind>
-inline void create (GLuint * dest, size_t len) {
-    detail::GLInterface<kind>::create(len,dest);
-}
-
-template <GLenum kind>
-inline void destroy (GLuint res) {
-    detail::GLInterface<kind>::destroy(1,&res);
-}
-
-template <GLenum kind>
-inline void destroy (GLuint* dest, size_t len) {
-    detail::GLInterface<kind>::destroy(len,&dest);
-}
 
 
 /**
@@ -268,7 +269,7 @@ public:
         size(size)
     {
         ids = new GLuint[size];
-        detail::GLInterface<kind>::create(size,ids);
+        sgl::create<kind>(size,ids);
     }
 
     ~GLResourceArray () {
@@ -280,15 +281,15 @@ public:
     }
 
     void bind (size_t idx) {
-        detail::GLInterface<kind>::bind(ids[idx]);
+        sgl::bind<kind>(ids[idx]);
     }
 
     void unbind (size_t idx) {
-        detail::GLInterface<kind>::bind(0);
+        sgl::bind<kind>(0);
     }
 
     void release () {
-        detail::GLInterface<kind>::destroy(size,ids);
+        sgl::destroy<kind>(size,ids);
         delete ids; // TODO: Because the user can wrap their own ptr, this might not be a good idea...
         ids = nullptr;
     }
@@ -420,6 +421,7 @@ public:
     GLBuffer (const std::vector<T>& data, detail::UsageType flags = SGL_RW) :
         GLResource<kind>()
     {
+        this->bind();
         detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * data.size(), flags);
     }
 
@@ -427,16 +429,19 @@ public:
     GLBuffer (const std::array<T,len>& data, detail::UsageType flags = SGL_RW) :
         GLResource<kind>()
     {
+        this->bind();
         detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * len, flags);
     }
 
     GLBuffer (const T* data, size_t len, detail::UsageType flags = SGL_RW) :
         GLResource<kind>()
     {
+        this->bind();
         detail::GLBufferInterface<kind>::initialize(this->_id, reinterpret_cast<const char*>(data), sizeof(T) * len, flags);
     }
 
     void reserve (size_t count, detail::UsageType flags = SGL_RW) {
+        this->bind();
         detail::GLBufferInterface<kind>::initialize(this->_id, NULL, sizeof(T) * count, flags);
     }
 };
@@ -455,6 +460,7 @@ public:
     GLBufferMut (const std::vector<T>& data, GLenum usage = GL_READ_WRITE) :
         GLResource<kind>()
     {
+        this->bind();
         detail::GLBufferInterface<kind>::initializeMut(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * data.size(), usage);
     }
 
@@ -462,20 +468,24 @@ public:
     GLBufferMut (const std::array<T,len>& data, GLenum usage = GL_READ_WRITE) :
         GLResource<kind>()
     {
+        this->bind();
         detail::GLBufferInterface<kind>::initializeMut(this->_id, reinterpret_cast<const char*>(&data[0]), sizeof(T) * len, usage);
     }
 
     GLBufferMut (const T* data, size_t len, GLenum usage = GL_READ_WRITE) :
         GLResource<kind>()
     {
+        this->bind();
         detail::GLBufferInterface<kind>::initializeMut(this->_id, reinterpret_cast<const char*>(data), sizeof(T) * len, usage);
     }
 
     void reserve (size_t count, GLenum usage = GL_READ_WRITE) {
+        this->bind();
         detail::GLBufferInterface<kind>::initializeMut(this->_id, NULL, sizeof(T) * count, usage);
     }
 
     void resize (size_t count, GLenum usage = GL_READ_WRITE) {
+        this->bind();
         detail::GLBufferInterface<kind>::initializeMut(this->_id, NULL, sizeof(T) * count, usage);
     }
 };
@@ -516,7 +526,7 @@ namespace detail {
         {
             // TODO: Benchmark glMapBuffer vs glMapBufferRange
             sglDbgLogVerbose("Mapping buffer: %d:%d\n", kind, _res);
-            detail::GLInterface<kind>::bind(kind,_res);
+            sgl::bind<kind>(_res);
             _data = static_cast<D*>(glMapBufferRange(kind, start, len, access));
             sglDbgCatchGLError();
         }
@@ -586,7 +596,7 @@ template <class R, class D>
 void bufferData (R&& res, D* data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
     using M = typename std::remove_reference<R>::type;
     static_assert(traits::IsBuffer<M::type>::value, "GLResource target must be buffer");
-    detail::GLInterface<M::type>::bind(static_cast<GLuint>(res));
+    sgl::bind<M::type>(static_cast<GLuint>(res));
     glBufferData(M::type, len * sizeof(D), data, usage);
 }
 
@@ -605,7 +615,7 @@ void bufferData (GLBuffer<kind, D>& buffer, D*  data, size_t len, GLenum usage =
 template <GLenum kind, class D>
 void bufferData (GLuint res, D*  data, size_t len, GLenum usage = GL_DYNAMIC_DRAW){
     static_assert(traits::IsBuffer<kind>::value, "GLResource target must be buffer");
-    detail::GLInterface<kind>::bind(res);
+    sgl::bind<kind>(res);
     glBufferData(kind, len * sizeof(D), data, usage);
 }
 
