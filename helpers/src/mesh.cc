@@ -17,7 +17,8 @@ int MeshBuilder::vertexCount () const {
 }
 
 MeshResource::MeshResource (MeshData& data) :
-    size(data.indices.size())
+    size(data.indices.size()),
+    attribs(3)
 {
     sgl::bufferData(VBO, data.vertices, GL_STATIC_DRAW);
     sgl::bufferData(EBO, data.indices, GL_STATIC_DRAW);

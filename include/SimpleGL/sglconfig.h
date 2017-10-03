@@ -4,9 +4,10 @@
 /**
 * Compile Time configuration flags:
 * SGL_USE_GLES         - Enable GLES
-* SGL_DEBUG [1-3]      - Enable debugging messages and error checking
-* SGL_OPENGL_MAX_MAJOR - Define default max available opengl api. Enables usage of newer features.
-* SGL_OPENGL_MAX_MINOR - Define default max available opengl api. Enables usage of newer features.
+* SGL_OPENGL_MAX_MAJOR - Define default max available opengl api. Used by SimpleGLHelper Context Creation
+* SGL_OPENGL_MAX_MINOR - Define default max available opengl api. Used by SimpleGLHelper Context Creation
+* SGL_DEBUG [1-3]      - Enable debugging messages and error checking.
+*                        If OpenGL 4.3 is available consider using sgl::utils::initializeDebugging
 */
 
 #include <epoxy/gl.h>

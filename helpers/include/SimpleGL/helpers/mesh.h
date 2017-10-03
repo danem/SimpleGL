@@ -37,6 +37,7 @@ private:
 
 public:
     size_t size;
+    size_t attribs;
 
     MeshResource (MeshData& data);
 

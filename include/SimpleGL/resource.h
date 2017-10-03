@@ -762,11 +762,8 @@ public:
         return *this;
     }
 
-
-
     // TODO: This API currently doesn't support non-normalized buffers.
     // Not sure how to include it in the API.
-
 
     template <class T, class ...Ts>
     VertexAttribBuilder& addBuffer (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {

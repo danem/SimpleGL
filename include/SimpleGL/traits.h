@@ -333,14 +333,6 @@ namespace traits {
     template <class T>
     struct GLType<T&>{ const static GLenum type = GLType<T>::type; };
 
-#ifdef SGL_USE_GLM  
-    template<> struct GLType<glm::vec2> { const static GLenum type = GL_FLOAT; };
-    template<> struct GLType<glm::vec3> { const static GLenum type = GL_FLOAT; };
-    template<> struct GLType<glm::vec4> { const static GLenum type = GL_FLOAT; };
-    template<> struct GLType<glm::mat3> { const static GLenum type = GL_FLOAT; };
-    template<> struct GLType<glm::mat4> { const static GLenum type = GL_FLOAT; };
-#endif
-
     template <class T>
     constexpr GLenum gl_type () { return GLType<T>::type; }
 
