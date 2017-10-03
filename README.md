@@ -17,7 +17,8 @@ sgl::bufferData<float>(buffer1, data);    // glGenBuffers(1,&buffer1);
                                           //
 buffer.bind();                            // GLResource can be used interchangably with GLuint
 assert(sizeof(buffer) == sizeof(GLuint)); // 
-glDeleteBuffers(1,&buffer);               //
+glBindBuffer(buffer.type, buffer);        //
+buffer.release();                         //
                                           //
                                           // We can introduce some type aliases to make things cleaner. 
                                           // All SGL Types are just variations on GLResource.
