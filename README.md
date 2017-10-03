@@ -6,39 +6,6 @@ OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL 
 or used with other OpenGL libraries and frameworks.
 
 ```c++
-<<<<<<< HEAD
-// Using ASSIMP
-
-struct MeshVertex {
-    aiVector3d position;
-    aiVector3d uvcoord;
-    aiVector3d normal;
-    aiVector4d color;
-    aiVector3d tangent;
-};
-
-// sizeof(MeshPart) == sizeof(GLuint)*3
-struct MeshPart : public sgl::VertexArray {
-    sgl::ArrayBuffer<MeshVertex> vbo;
-    sgl::ElementArrayBuffer indices;
-
-    MeshPart(std::vector<MeshVertex>& verts, std::vector<GLuint>& indices) :
-        vbo(verts),
-        indices(indices)
-    {
-        sgl::VertexAttribBuilder(*this)
-            .addElementBuffer(indices)
-            .addBuffer<sgl::vec3f, sgl::vec3f,  // specify the layout of the struct
-                       sgl::vec3f, sgl::vec4f,
-                       sgl::vec3f>(vbo)
-            .commit();
-    }
-
-};
-```
-
-Or using the helper library:
-=======
 std::vector<float> data(1000);            //
 std::iota(data.begin(), data.end(), 0);   //
                                           //
@@ -93,7 +60,6 @@ void withBuffer (ArrayBuffer<int>& buf);  // Typesafe interfaces
                                           // And much more!                          
 ```
 Or using the helper library:                                       
->>>>>>> 19172d0dba8b22579c8ac93a7b4bebe21404a07f
 
 ```c++
 #include <vector>
