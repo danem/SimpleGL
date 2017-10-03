@@ -16,6 +16,7 @@ struct MeshVertex {
     aiVector3d tangent;
 };
 
+// sizeof(MeshPart) == sizeof(GLuint)*3
 struct MeshPart : public sgl::VertexArray {
     sgl::ArrayBuffer<MeshVertex> vbo;
     sgl::ElementArrayBuffer indices;
