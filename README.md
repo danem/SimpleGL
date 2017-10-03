@@ -4,6 +4,39 @@ SimpleGL is a very thin C++11 wrapper over OpenGL. Its aim is to make OpenGL dev
 faster and less error prone without sacraficing speed or the full range of features
 OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL applications
 or used with other OpenGL libraries and frameworks.
+
+```c++
+// Using ASSIMP
+
+struct MeshVertex {
+    aiVector3d position;
+    aiVector3d uvcoord;
+    aiVector3d normal;
+    aiVector4d color;
+    aiVector3d tangent;
+};
+
+struct MeshPart : public sgl::VertexArray {
+    sgl::ArrayBuffer<MeshVertex> vbo;
+    sgl::ElementArrayBuffer indices;
+
+    MeshPart(std::vector<MeshVertex>& verts, std::vector<GLuint>& indices) :
+        vbo(verts),
+        indices(indices)
+    {
+        sgl::VertexAttribBuilder(*this)
+            .addElementBuffer(indices)
+            .addBuffer<sgl::vec3f, sgl::vec3f,  // specify the layout of the struct
+                       sgl::vec3f, sgl::vec4f,
+                       sgl::vec3f>(vbo)
+            .commit();
+    }
+
+};
+```
+
+Or using the helper library:
+
 ```c++
 #include <vector>
 #include <glm/glm.hpp>
@@ -16,6 +49,7 @@ or used with other OpenGL libraries and frameworks.
 
 using sgl::helper::Context;
 using sgl::helper::MeshResource;
+
 
 int main () {
     Context ctx{500,500,"instancing test"};
