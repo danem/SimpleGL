@@ -50,8 +50,8 @@ Texture2D tex = TextureBuilder2D()        // GLuint tex;
                                           // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                                           // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, 100, 100, 0, GL_R, GL_UNSIGNED_BYTE, NULL);
                                           //
-struct Vec3 { float x, y, z; };           //
-struct Foo { Vec3 pos; float size; };     //
+                                          //
+struct Foo { vec3 pos; float size; };     //
 Foo foo{{0,0,0},10};                      //
 UniformBuffer<Foo> vecBuf{foo};           // GLuint ubo;
 {                                         // glGenBuffers(1,&ubo);
