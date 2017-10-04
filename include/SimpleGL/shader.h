@@ -5,6 +5,8 @@
 #include "resource.h"
 
 #include <string.h>
+#include <vector>
+#include <initializer_list>
 
 namespace sgl {
 
@@ -18,15 +20,20 @@ struct ShaderStage : public GLResource<kind> {
     static_assert(traits::IsShaderStage<kind>::value, "Invalid shader stage type");
 };
 
+using VertexShader   = ShaderStage<GL_VERTEX_SHADER>;
+using FragmentShader = ShaderStage<GL_FRAGMENT_SHADER>;
+using GeometryShader = ShaderStage<GL_GEOMETRY_SHADER>;
+using ComputShader   = ShaderStage<GL_COMPUTE_SHADER>;
+
 /**
 * Given a source string and an optional path, allocate a ShaderStage and
 * compile the provided program. path is present for helpful error messages.
 */
+
 template<GLenum kind>
-ShaderStage<kind> compileShaderStage (const std::string& source, const std::string& path = "") {
+ShaderStage<kind> compileShaderStage (const char ** source, size_t len, const std::string& path = "") {
     ShaderStage<kind> shader;
-    const char * src = source.c_str();
-    glShaderSource(shader, 1, &src, NULL);
+    glShaderSource(shader, len, source, NULL);
     glCompileShader(shader);
 
     GLint res;
@@ -43,6 +50,24 @@ ShaderStage<kind> compileShaderStage (const std::string& source, const std::stri
     return shader;
 }
 
+template<GLenum kind>
+ShaderStage<kind> compileShaderStage (const std::string& source, const std::string& path ="") {
+    const char * src = source.c_str();
+    return compileShaderStage<kind>(&src, 1, path);
+}
+
+template<GLenum kind>
+ShaderStage<kind> compileShaderStage (const std::vector<std::string>& source, const std::string& path ="") {
+    std::vector<const char *> strings;
+    for (const auto& s : source) strings.emplace_back(s.c_str());
+    return compileShaderStage<kind>(strings.data(), strings.size(), path);
+}
+
+template<GLenum kind>
+ShaderStage<kind> compileShaderStage (const std::vector<const char *>& source, const std::string& path ="") {
+    return compileShaderStage<kind>(source.data(), source.size(), path);
+}
+
 /**
 * Load a glsl program from the specified file and compile it.
 */
@@ -52,6 +77,18 @@ ShaderStage<kind> loadShaderStage (const std::string& path) {
     std::string src((std::istreambuf_iterator<char>(vf)),
                      std::istreambuf_iterator<char>());
     return compileShaderStage<kind>(src,path);
+}
+
+template <GLenum kind>
+ShaderStage<kind> loadShaderStage (const std::initializer_list<std::string>& paths, const std::string& name) {
+    std::vector<std::string> files;
+    for (const auto& p : paths) {
+        std::ifstream vf(p);
+        std::string src((std::istreambuf_iterator<char>(vf)),
+                         std::istreambuf_iterator<char>());
+        files.emplace_back(src);
+    }
+    return compileShaderStage<kind>(files, name);
 }
 
 

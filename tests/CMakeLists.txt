@@ -12,6 +12,8 @@ set(SHADER_FILES
     ./data/instanced_vs.glsl
     ./data/pointcloud_fs.glsl
     ./data/pointcloud_vs.glsl
+    ./data/shader-test-header.glsl
+    ./data/shader-test-vs.glsl
     ./data/texture_fs.glsl
     ./data/vs.glsl)
 

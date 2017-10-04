@@ -406,9 +406,9 @@ public:
             const unsigned char * data = loader.loader(paths[i], &w, &h, &c, 0);
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, _info.iformat, w, h, 0, _info.format, _info.data_type, data);
             loader.freer(data);
-            _result.unbind();
-            return _result;
         }
+        _result.unbind();
+        return _result;
     }
 };
 
