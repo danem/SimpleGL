@@ -53,6 +53,7 @@ struct DebugConfig {
     }
 };
 
+#if SGL_DEBUG > 0
 const DebugConfig SGL_DEBUG_MAX_VERBOSE{{GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE}};
 const DebugConfig SGL_DEBUG_VERBOSE{
     {GL_DEBUG_SOURCE_API, GL_DONT_CARE, GL_DONT_CARE},
@@ -108,6 +109,7 @@ static void initializeDebugging (const DebugConfig& config) {
         glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
     }
 }
+#endif
 
 } // end namespace
 } // end namespace

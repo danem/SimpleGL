@@ -536,19 +536,15 @@ namespace detail {
             if (_data != nullptr) commit();
         }
 
-        D& operator[] (size_t idx) {
-            return _data[idx];
-        }
 
         void operator= (const D& value) {
             _data[0] = value;
         }
 
-        void write (const D* values, size_t count) {
-            for (size_t i = 0; i < count; i++){
-                _data[i] = values[i];
-            }
+        D* operator-> () {
+            return _data;
         }
+
 
         void commit () {
             sgl::bind<kind>(_res);

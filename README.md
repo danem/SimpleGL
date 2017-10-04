@@ -50,9 +50,21 @@ Texture2D tex = TextureBuilder2D()        // GLuint tex;
                                           // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                                           // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, 100, 100, 0, GL_R, GL_UNSIGNED_BYTE, NULL);
                                           //
+struct Vec3 { float x, y, z; };           //
+struct Foo { Vec3 pos; float size; };     //
+Foo foo{{0,0,0},10};                      //
+UniformBuffer<Foo> vecBuf{foo};           // GLuint ubo;
+{                                         // glGenBuffers(1,&ubo);
+    auto bv = sgl::buffer_view(vecBuf);   // glBindBuffers(GL_UNIFORM_BUFFER, ubo);
+    bv->pos.x = 100;                      // glBufferData(GL_UNIFORM_BUFFER, sizeof(Foo), &foo, GL_DYNAMIC_DRAW);
+}                                         // Foo* data = glMapBufferRange(GL_UNIFORM_BUFFER, 0, sizeof(Foo), GL_READ_WRITE);
+                                          // if (data == nullptr) glUnmapBuffer(GL_UNIFORM_BUFFER);
+                                          // else data->pos.x = 100;
+                                          // glUnmapBuffer(GL_UNIFORM_BUFFER);
                                           //
 { auto res = resource_guard(buffer1); }   // Ensure a resource is freed at the end of a block
 { auto bg = bind_guard(buffer2); }        // Ensure a resource is unbound at the end of a block
+                                          //
                                           //
 void withBuffer (ArrayBuffer<int>& buf);  // Typesafe interfaces with the same overhead as before.
                                           //

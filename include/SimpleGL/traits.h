@@ -289,7 +289,13 @@ namespace traits {
 
     template <GLenum v, class T = GLenum>
     using IfTex2D = typename std::enable_if<traits::IsTex2D<v>::value, T>::type;
-    
+
+    template <GLenum v>
+    using IsTex2DLike = traits::eval<traits::IsTex2D<v>::value || traits::IsRenderBuffer<v>::value>;
+
+    template <GLenum v, class T = GLenum>
+    using IfTex2DLike = typename std::enable_if<traits::IsTex2DLike<v>::value, T>::type;
+
     template <GLenum V>
     using IsTex2DArray = traits::one_of_v<GLenum, V, GL_TEXTURE_CUBE_MAP>;
 
@@ -337,6 +343,19 @@ namespace traits {
       | IsTexture<v>::value
       | IsFramebuffer<v>::value
       | IsVertexArray<v>::value>;
+
+    template <GLenum kind, class _ = GLenum>
+    struct SizeType;
+
+    template <GLenum kind>
+    struct SizeType<kind, traits::IfBuffer<kind>> { using type = size_t; };
+
+    template <GLenum kind>
+    struct SizeType<kind, traits::IfTex1D<kind>> { using type = size_t; };
+
+    template <GLenum kind>
+    struct SizeType<kind, traits::IfTex2D<kind>> { using type = size_t; };
+
 
 
     // C++ Type to GL Type
