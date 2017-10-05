@@ -34,6 +34,7 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/SimpleGL.h
     ${INCLUDE_DIR}/SimpleGL/utils.h
     ${INCLUDE_DIR}/SimpleGL/resource.h
+    ${INCLUDE_DIR}/SimpleGL/resourceinfo.h
     ${INCLUDE_DIR}/SimpleGL/sglconfig.h
     ${INCLUDE_DIR}/SimpleGL/shader.h
     ${INCLUDE_DIR}/SimpleGL/texture.h

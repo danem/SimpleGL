@@ -4,6 +4,7 @@
 #include "sglconfig.h"
 #include "utils.h"
 #include "traits.h"
+#include "resourceinfo.h"
 
 #include <stdint.h>
 #include <set>
@@ -87,6 +88,8 @@ namespace detail {
         static void destroy (int len, GLuint* dest) { glDeleteRenderbuffers(len,dest); sglDbgLogDeletion(GL_RENDERBUFFER,len,dest); }
         static void bind (GLuint id) { glBindRenderbuffer(GL_RENDERBUFFER,id); sglDbgLogBind(GL_RENDERBUFFER,id); }
     };
+
+
 
 
     //static GLbitfield SGL_RW = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
@@ -867,6 +870,12 @@ using Framebuffer     = FramebufferBase<GL_FRAMEBUFFER>;
 using DrawFramebuffer = FramebufferBase<GL_DRAW_FRAMEBUFFER>;
 using ReadFramebuffer = FramebufferBase<GL_READ_FRAMEBUFFER>;
 
+template <GLenum kind>
+typename sgl::GLResourceInfo<kind>::type getResourceInfo (GLResource<kind>& res) {
+    static_assert(traits::IsInfoQueryable<kind>::value, "Not possible to query information about this object.");
+    res.bind();
+    return detail::GLInfoInterface<kind>::getInfo();
+}
 
 } // end namespace
 

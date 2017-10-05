@@ -344,6 +344,15 @@ namespace traits {
       | IsFramebuffer<v>::value
       | IsVertexArray<v>::value>;
 
+    template <GLenum v>
+    using IsInfoQueryable = traits::eval<
+        traits::IsTexture<v>::value ||
+        traits::IsRenderBuffer<v>::value ||
+        traits::IfBuffer<v>::value>;
+
+    template <GLenum v, class T = GLenum>
+    using IfInfoQueryable = typename std::enable_if<traits::IsInfoQueryable<v>::value, T>::type;
+
     template <GLenum kind, class _ = GLenum>
     struct SizeType;
 

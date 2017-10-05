@@ -1,70 +1,18 @@
 #pragma once
 
-#include "sglconfig.h"
-#include "resource.h"
-#include "utils.h"
 #include <initializer_list>
+#include <vector>
+#include <array>
+
+#include "sglconfig.h"
+#include "utils.h"
+#include "bufferinfo.h"
+#include "resource.h"
 
 
 namespace sgl {
 
 namespace detail {
-
-    struct GLTextureInfoBase {
-        GLenum format = GL_RGB;
-        GLenum iformat = GL_RGB;
-        GLenum data_type = GL_UNSIGNED_BYTE;
-        GLenum wrap_s = GL_CLAMP_TO_EDGE;
-        GLenum wrap_t = GL_CLAMP_TO_EDGE;
-        GLenum wrap_r = GL_CLAMP_TO_EDGE;
-        GLenum min_filter = GL_NEAREST;
-        GLenum mag_filter = GL_LINEAR;
-        GLsizei levels = 0;
-    };
-
-    template <GLenum kind, class T = GLenum>
-    struct GLTextureInfo : GLTextureInfoBase {};
-
-    template <GLenum kind>
-    struct GLTextureInfo<kind, traits::IfTex1D<kind>> : GLTextureInfoBase {
-        int width;
-        GLTextureInfo () : GLTextureInfoBase() {}
-        GLTextureInfo (int w) : width(w), GLTextureInfoBase() {}
-        GLTextureInfo (int w, GLTextureInfoBase& info) : width(w), GLTextureInfoBase(info) {}
-        size_t size () const { return width * sgl::traits::formatSize(iformat); }
-    };
-
-    template <GLenum kind>
-    struct GLTextureInfo<kind, traits::IfTex2D<kind>> : GLTextureInfoBase {
-        int width, height;
-        GLTextureInfo () : GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h) : width(w), height(h), GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, GLTextureInfoBase& info) : width(w), height(h), GLTextureInfoBase(info) {}
-        size_t size () const { return width * height * sgl::traits::formatSize(iformat); }
-    };
-
-    template <GLenum kind>
-    struct GLTextureInfo<kind, traits::IfTex2DArray<kind>> : GLTextureInfoBase {
-        int width, height, length;
-        GLTextureInfo () : GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, int length) : width(w), height(h), length(length), GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, int length, GLTextureInfoBase& info) : width(w), height(h), length(length), GLTextureInfoBase(info) {}
-        size_t size () const { return width * height * sgl::traits::formatSize(iformat); }
-    };
-
-    template <GLenum kind>
-    struct GLTextureInfo<kind, traits::IfTex3D<kind>> : GLTextureInfoBase {
-        int width, height, depth;
-        GLTextureInfo () : GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, int d) : width(w), height(h), depth(d), GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, int d, GLTextureInfoBase& info) : width(w), height(h), depth(d), GLTextureInfoBase(info) {}
-        size_t size () const { return width * height * depth * sgl::traits::formatSize(iformat); }
-    };
-
-    using GLTextureInfo1D      = GLTextureInfo<GL_TEXTURE_1D>;
-    using GLTextureInfo2D      = GLTextureInfo<GL_TEXTURE_2D>;
-    using GLTextureInfo2DArray = GLTextureInfo<GL_TEXTURE_CUBE_MAP>;
-    using GLTextureInfo3D      = GLTextureInfo<GL_TEXTURE_3D>;
 
     template <GLenum kind, class T = GLenum>
     struct GLTextureInterface;
