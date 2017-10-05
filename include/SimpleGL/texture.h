@@ -6,7 +6,7 @@
 
 #include "sglconfig.h"
 #include "utils.h"
-#include "bufferinfo.h"
+#include "resourceinfo.h"
 #include "resource.h"
 
 
