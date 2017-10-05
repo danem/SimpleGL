@@ -1,16 +1,20 @@
 cmake_minimum_required(VERSION 3.2)
 
+
+set(SGL_USE_ANDROID OFF CACHE BOOL "Build for android")
+set(SGL_USE_GLES OFF CACHE BOOL "Enabled GLES")
+set(SGL_COMPILE_HELPERS ON CACHE BOOL "Make SimpleGL Helper Library. Requires GLM and GLFW3")
+set(SGL_COMPILE_TESTS ON CACHE BOOL "Make test projects")
+set(SGL_COMPILE_BENCHMARKS OFF CACHE BOOL "Make benchmarks")
+#set(SGL_DEBUG 0 CACHE STRING "SGL Debug Mode. Valid values [1-3]")
+
+
 project(SimpleGL CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SGL_USE_GLES OFF CACHE BOOL "Enabled GLES")
-set(SGL_COMPILE_HELPERS ON CACHE BOOL "Make SimpleGL Helper Library. Requires GLM and GLFW3")
-set(SGL_COMPILE_TESTS ON CACHE BOOL "Make test projects")
-set(SGL_COMPILE_BENCHMARKS OFF CACHE BOOL "Make benchmarks")
-#set(SGL_DEBUG 0 CACHE STRING "SGL Debug Mode. Valid values [1-3]")
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)

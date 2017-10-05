@@ -146,4 +146,4 @@ int main () {
 
 ### Compatibility
 
-Tested on OSX and Ubuntu.
+Tested on OSX, Ubuntu, and Android.
