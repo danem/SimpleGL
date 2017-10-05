@@ -870,13 +870,6 @@ using Framebuffer     = FramebufferBase<GL_FRAMEBUFFER>;
 using DrawFramebuffer = FramebufferBase<GL_DRAW_FRAMEBUFFER>;
 using ReadFramebuffer = FramebufferBase<GL_READ_FRAMEBUFFER>;
 
-template <GLenum kind>
-typename sgl::GLResourceInfo<kind>::type getResourceInfo (GLResource<kind>& res) {
-    static_assert(traits::IsInfoQueryable<kind>::value, "Not possible to query information about this object.");
-    res.bind();
-    return detail::GLInfoInterface<kind>::getInfo();
-}
-
 } // end namespace
 
 #endif // RESOURCE2_H
