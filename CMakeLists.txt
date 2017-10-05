@@ -77,6 +77,9 @@ target_link_libraries(${PROJECT_NAME} ${EXTERN_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 
 if (${SGL_COMPILE_HELPERS})
+    if(${SGL_USE_ANDROID})
+        message(FATAL_ERROR "Helper library is currently unavailable for android, as it relies on GLFW.")
+    endif()
     add_subdirectory("./helpers")
 endif()
 

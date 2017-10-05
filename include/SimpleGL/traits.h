@@ -365,8 +365,6 @@ namespace traits {
     template <GLenum kind>
     struct SizeType<kind, traits::IfTex2D<kind>> { using type = size_t; };
 
-
-
     // C++ Type to GL Type
     template <class T>
     struct GLType {

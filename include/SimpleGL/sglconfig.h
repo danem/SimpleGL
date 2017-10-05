@@ -44,7 +44,6 @@ namespace config {
     struct SGL_OPENGL_STATE {
         int version_major = SGL_OPENGL_MAX_MAJOR;
         int version_minor = SGL_OPENGL_MAX_MINOR;
-        bool debuglogSupported;
     };
 
     static SGL_OPENGL_STATE __sglOpenGLState__;
@@ -57,11 +56,6 @@ namespace config {
 inline void sglInitialize (int major, int minor) {
     config::__sglOpenGLState__.version_major = major;
     config::__sglOpenGLState__.version_minor = minor;
-    if (sgl::config::sglOpenglVersion(4,4)) config::__sglOpenGLState__.debuglogSupported = true;
-    else {
-        // TODO: Check if the extension is available
-        config::__sglOpenGLState__.debuglogSupported = false;
-    }
 #if SGL_DEBUG >= 1
     printf("SGL OpenGL Version %d.%d\n", major, minor);
     printf("SGL Debug Log Supported: %d\n", config::__sglOpenGLState__.debuglogSupported);
@@ -70,15 +64,31 @@ inline void sglInitialize (int major, int minor) {
 
 } // namespace
 
-#define SGL_RENDERBUFFER_SUPPORTED     sgl::config::sglOpenglVersion(3,0)
-#define SGL_FRAMEBUFFER_SUPPORTED      sgl::config::sglOpenglVersion(3,0)
-#define SGL_VERTEXARRAY_SUPPORTED      sgl::config::sglOpenglVersion(3,0)
-#define SGL_UNIFORMBLOCK_SUPPORTED     sgl::config::sglOpenglVersion(3,3)
-#define SGL_PROGRAMPIPELINES_SUPPORTED sgl::config::sglOpenglVersion(4,1)
-#define SGL_TEXSTORAGE_SUPPORTED       sgl::config::sglOpenglVersion(4,2)
-#define SGL_COMPUTESHADER_SUPPORTED    sgl::config::sglOpenglVersion(4,3)
-#define SGL_BUFFERSTORAGE_SUPPORTED    sgl::config::sglOpenglVersion(4,4)
-#define SGL_DEBUGLOG_SUPPORTED         sgl::config::__sglOpenGLState__.debuglogSupported
+
+#ifndef SGL_USE_GLES
+// OpenGL
+#   define SGL_RENDERBUFFER_SUPPORTED     sgl::config::sglOpenglVersion(3,0)
+#   define SGL_FRAMEBUFFER_SUPPORTED      sgl::config::sglOpenglVersion(3,0)
+#   define SGL_VERTEXARRAY_SUPPORTED      sgl::config::sglOpenglVersion(3,0)
+#   define SGL_UNIFORMBLOCK_SUPPORTED     sgl::config::sglOpenglVersion(3,3)
+#   define SGL_PROGRAMPIPELINES_SUPPORTED sgl::config::sglOpenglVersion(4,1)
+#   define SGL_TEXSTORAGE_SUPPORTED       sgl::config::sglOpenglVersion(4,2)
+#   define SGL_COMPUTESHADER_SUPPORTED    sgl::config::sglOpenglVersion(4,3)
+#   define SGL_BUFFERSTORAGE_SUPPORTED    sgl::config::sglOpenglVersion(4,4)
+#   define SGL_DEBUGLOG_SUPPORTED         sgl::config::sglOpenglVersion(4,4)
+#else
+// OpenGL ES
+#   define SGL_RENDERBUFFER_SUPPORTED     sgl::config::sglOpenglVersion(2,0)
+#   define SGL_FRAMEBUFFER_SUPPORTED      sgl::config::sglOpenglVersion(2,0)
+#   define SGL_VERTEXARRAY_SUPPORTED      sgl::config::sglOpenglVersion(2,0)
+#   define SGL_UNIFORMBLOCK_SUPPORTED     sgl::config::sglOpenglVersion(3,0)
+#   define SGL_TEXSTORAGE_SUPPORTED       sgl::config::sglOpenglVersion(3,0)
+#   define SGL_PROGRAMPIPELINES_SUPPORTED sgl::config::sglOpenglVersion(3,1)
+#   define SGL_COMPUTESHADER_SUPPORTED    sgl::config::sglOpenglVersion(3,1)
+#   define SGL_BUFFERSTORAGE_SUPPORTED    false
+#   define SGL_DEBUGLOG_SUPPORTED         sgl::config::sglOpenglVersion(3,2)
+#endif
+
 #define SGL_RW                         (SGL_BUFFERSTORAGE_SUPPORTED ? (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT) : GL_DYNAMIC_DRAW)
 
 

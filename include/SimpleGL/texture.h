@@ -209,10 +209,10 @@ public:
     }
 };
 
-using Texture1D             = Texture<GL_TEXTURE_1D>;
-using Texture2D             = Texture<GL_TEXTURE_2D>;
-using Texture3D             = Texture<GL_TEXTURE_3D>;
-using TextureCubeMap        = Texture<GL_TEXTURE_CUBE_MAP>;
+using Texture1D      = Texture<GL_TEXTURE_1D>;
+using Texture2D      = Texture<GL_TEXTURE_2D>;
+using Texture3D      = Texture<GL_TEXTURE_3D>;
+using TextureCubeMap = Texture<GL_TEXTURE_CUBE_MAP>;
 
 
 /**
