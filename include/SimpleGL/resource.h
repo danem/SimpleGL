@@ -687,26 +687,18 @@ namespace detail {
         uint32_t attrib;
     };
 
-    struct VertexAttribNew {
-        GLenum type;
-        size_t offset;
-        size_t elSize;
-        size_t components;
-        GLuint div;
-    };
-
     struct VertexAttribBuffer {
         size_t stride;
         size_t offset;
-        std::vector<VertexAttribNew> attribs;
+        std::vector<VertexAttrib> attribs;
     };
 
     template <class T>
-    VertexAttribNew makeVertexAttrib (size_t offset, GLuint div = 0) {
+    VertexAttrib makeVertexAttrib (size_t offset, uint32_t attrib, GLuint div = 0) {
         GLenum type = traits::GLType<T>::type;
         size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
         size_t components = sizeof(T) / elSize;
-        return { type, offset, elSize, components, div };
+        return { type, offset, elSize, components, div, attrib};
     }
 } // end namespace
 
@@ -716,25 +708,64 @@ namespace detail {
 
 // TODO: Rework this to use VertexAttribNew and VertexAttribBuffer. It's
 // more elegant, more flexible, and more performant.
+
 class VertexAttribBuilder {
 private:
     VertexArray& vao;
 
+    // Element array buffer
+    GLuint ebo = 0;
+
     // Total number of attribs used
     uint32_t attribs;
 
-    // Map from buffer to offset / stride to allow for attaching multiple buffers to a VAO
-    std::map<GLuint,GLint> strides;
-    std::map<GLuint,uint64_t> offsets;
-    std::map<GLuint,std::vector<detail::VertexAttrib>> attribQueues;
-    std::set<GLuint> buffers;
-    GLuint ebo = 0;
+    // Buffer state map
+    std::map<GLuint, detail::VertexAttribBuffer> buffers;
 
 public:
     VertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0) :
         vao(vao),
         attribs(attribs)
     {}
+
+    VertexAttribBuilder& addElementBuffer (GLResource<GL_ELEMENT_ARRAY_BUFFER>& buffer) {
+        ebo = buffer;
+        return *this;
+    }
+
+    template <class T, class ...Ts>
+    VertexAttribBuilder& addBuffer (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
+        buffers[res].stride += traits::param_size<T,Ts...>::size;
+        queueAttrib<T,Ts...>(res, div);
+        return *this;
+    }
+
+    template <class D, class T = D, class ...Ts>
+    VertexAttribBuilder& addBuffer (ArrayBuffer<D>& res, GLuint div = 0) {
+        buffers[res].stride += traits::param_size<T,Ts...>::size;
+        queueAttrib<D,T,Ts...>(res, div);
+        return *this;
+    }
+
+    template <class T, class ...Ts>
+    VertexAttribBuilder& skip (GLResource<GL_ARRAY_BUFFER>& res) {
+        size_t size = traits::param_size<T,Ts...>::size;
+        return skipBytes(res,size);
+    }
+
+    VertexAttribBuilder& skipBytes (GLResource<GL_ARRAY_BUFFER>& res, size_t size) {
+        detail::VertexAttribBuffer& buf = buffers[res];
+        buf.offset += size;
+        buf.stride += size;
+        return *this;
+    }
+
+    VertexAttribBuilder& reset () {
+        buffers.clear();
+        attribs = 0;
+        ebo = 0;
+        return *this;
+    }
 
     /**
     * @brief commit Perform vertex array configuration.
@@ -743,61 +774,13 @@ public:
         vao.bind();
         if (ebo != 0) sgl::bind<GL_ELEMENT_ARRAY_BUFFER>(ebo);
         for (const auto& b : buffers) {
-            sgl::bind<GL_ARRAY_BUFFER>(b);
-            for (const auto& attr : attribQueues[b]){
-                addAttribute(attr, strides[b]);
+            sgl::bind<GL_ARRAY_BUFFER>(b.first);
+            const detail::VertexAttribBuffer& buf = b.second;
+            for (const auto& attr : buf.attribs){
+                addAttribute(attr, buf.stride);
             }
         }
         vao.unbind();
-    }
-
-    /**
-     * @brief addElementBuffer Set VAO's element array buffer
-     * @param buffer
-     * @return VertexAttribBuilder refernece
-     */
-    VertexAttribBuilder& addElementBuffer (GLResource<GL_ELEMENT_ARRAY_BUFFER>& buffer) {
-        ebo = buffer;
-        return *this;
-    }
-
-    // TODO: This API currently doesn't support non-normalized buffers.
-    // Not sure how to include it in the API.
-
-    template <class T, class ...Ts>
-    VertexAttribBuilder& addBuffer (GLResource<GL_ARRAY_BUFFER>& res, GLuint div = 0) {
-        strides[res] += traits::param_size<T,Ts...>::size;
-        buffers.insert(res);
-        queueAttrib<T,Ts...>(res, div);
-        return *this;
-    }
-
-    template <class D, class T = D, class ...Ts>
-    VertexAttribBuilder& addBuffer (ArrayBuffer<D>& res, GLuint div = 0) {
-        strides[res] += traits::param_size<T,Ts...>::size;
-        buffers.insert(res);
-        queueAttrib<D,T,Ts...>(res, div);
-        return *this;
-    }
-
-    // TODO: Hack to support skipping vertices in interleaved vertex buffer.
-    // Rework the interface a bit to add a more expressive, flexible data type
-    // that allows the user to manually specify everything.
-    template <class T>
-    VertexAttribBuilder& skip (GLResource<GL_ARRAY_BUFFER>& res) {
-        strides[res] += sizeof(T);
-        offsets[res] += sizeof(T);
-        return *this;
-    }
-
-    VertexAttribBuilder& reset () {
-        buffers.clear();
-        strides.empty();
-        offsets.empty();
-        attribQueues.empty();
-        ebo = 0;
-        attribs = 0;
-        return *this;
     }
 
 private:
@@ -813,10 +796,11 @@ private:
         GLenum type = traits::GLType<T>::type;
         size_t elSize = sizeof(typename traits::CType<traits::GLType<T>::type>::type);
         size_t components = sizeof(T) / elSize;
-        attribQueues[res].push_back({
-            type, offsets[res], elSize, components, div, attribs
+        detail::VertexAttribBuffer& buf = buffers[res];
+        buffers[res].attribs.push_back({
+            type, buf.offset, elSize, components, div, attribs
         });
-        offsets[res] += sizeof(T);
+        buf.offset += sizeof(T);
         attribs += 1;
     }
 
@@ -827,6 +811,7 @@ private:
         sglDbgCatchGLError();
     }
 };
+
 
 inline VertexAttribBuilder vertexAttribBuilder (VertexArray& vao, uint32_t attribs = 0){
     return {vao,attribs};
