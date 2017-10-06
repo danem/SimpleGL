@@ -10,15 +10,18 @@
 *                        If OpenGL 4.3 is available consider using sgl::utils::initializeDebugging
 */
 
-#include <epoxy/gl.h>
+#ifndef SGL_USE_GLES
+#    include <epoxy/gl.h>
+#endif
 
 #if defined(__APPLE__) || defined(__MACH__)
 #   include <OpenGL/gl.h>
 #   include <OpenGL/glu.h>
+#elif defined(__ANDROID__)
+#   include <GLES3/gl3.h>
+#   include <GLES3/gl3ext.h>
+#   include <GLES3/gl31.h>
 #elif defined(__LINUX__) || defined(__linux__)
-#   include <GL/gl.h>
-#   include <GL/glu.h>
-#else
 #   include <GL/gl.h>
 #   include <GL/glu.h>
 #endif

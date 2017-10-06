@@ -91,6 +91,31 @@ ShaderStage<kind> loadShaderStage (const std::initializer_list<std::string>& pat
     return compileShaderStage<kind>(files, name);
 }
 
+template <GLenum kind>
+ShaderStage<kind> loadShaderStage (const std::vector<std::string>& paths, const std::string& name) {
+    std::vector<std::string> files;
+    for (const auto& p : paths) {
+        std::ifstream vf(p);
+        std::string src((std::istreambuf_iterator<char>(vf)),
+                         std::istreambuf_iterator<char>());
+        files.emplace_back(src);
+    }
+    return compileShaderStage<kind>(files, name);
+}
+
+template <GLenum kind, size_t len>
+ShaderStage<kind> loadShaderStage (const std::array<std::string,len>& paths, const std::string& name) {
+    std::vector<std::string> files;
+    for (const auto& p : paths) {
+        std::ifstream vf(p);
+        std::string src((std::istreambuf_iterator<char>(vf)),
+                         std::istreambuf_iterator<char>());
+        files.emplace_back(src);
+    }
+    return compileShaderStage<kind>(files, name);
+}
+
+
 
 
 class Shader : public GLResource<GL_PROGRAM> {
