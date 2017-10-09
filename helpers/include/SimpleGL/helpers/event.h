@@ -203,4 +203,24 @@ public:
     virtual void onScroll (double sx, double sy) = 0;
 };
 
+class SimpleDragger : public MouseDraggerBase {
+private:
+    using handler = std::function<void (double,double,double,double,double,double)>;
+    handler _onDrag;
+
+public:
+    SimpleDragger (handler& onDrag) :
+        _onDrag(onDrag)
+    {}
+
+    void onDragStart () override {}
+    void onDragEnd () override {}
+    void onDrag (double ox, double oy, double mx, double my, double dx, double dy) override {
+        _onDrag(ox,oy,mx,my,dx,dy);
+    }
+
+    void onScroll (double sx, double sy) override {}
+
+};
+
 } // end namespace

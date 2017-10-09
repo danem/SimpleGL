@@ -81,9 +81,11 @@ public:
     void setWindowVisible (bool visible);
 
     void addKeyHandler (sgl::KeyHandler handler);
+    //void addKeyHandler (sgl::KeyHandler&& handler);
     void removeKeyHandler (sgl::KeyHandler handler);
 
     void addMouseHandler (sgl::MouseHandler handler);
+    //void addMouseHandler (sgl::MouseHandler&& handler);
     void removeMouseHandler (sgl::MouseHandler handler);
 
     bool isAlive ();

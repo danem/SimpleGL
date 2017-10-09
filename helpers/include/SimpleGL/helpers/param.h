@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <iostream>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -10,15 +11,15 @@ namespace sgl {
 namespace detail {
 
     template <class T>
-    using ParamPrinter = void (*) (const char * name, const T& value);
+    using ParamPrinter = void (*) (const char * name, const T& value, const void * userData);
 
     template <class T>
-    void DefaultPrinter (const char * name, const T& value) {
+    void DefaultPrinter (const char * name, const T& value, const void * userData) {
         std::cout << name << ": " << value << std::endl;
     }
 
     template <class T>
-    void NoPrinter (const char * name, const T& value) {}
+    void NoPrinter (const char * name, const T& value, const void * userData) {}
 
     // TODO: Figure out how to make this a struct
     template <class V, class S>
@@ -34,7 +35,7 @@ namespace detail {
 
 // ParamPrinter
 template <class T>
-void VecPrinter (const char * name, const T& value){
+void VecPrinter (const char * name, const T& value, const void * userData){
     int len = T::length();
     std::cout << name << ": {";
     for (int i = 0; i < len; i++){
@@ -43,6 +44,15 @@ void VecPrinter (const char * name, const T& value){
     }
     std::cout << "}" << std::endl;
 }
+
+// ParamPrinter
+template <class T, class V>
+struct ListPrinter {
+    static void print (const char * name, const T& value, const void * data) {
+        const V* values = static_cast<const V*>(data);
+        std::cout << name << ": " << values[value] << std::endl;
+    }
+};
 
 template <
     class V,
@@ -55,6 +65,7 @@ private:
     detail::ParamIncrementer<RawType,S> incrementer;
 
     const char * name;
+    const void * userData;
     V value;
     S step;
 
@@ -98,33 +109,37 @@ public:
         incrementer(detail::DefaultIncrementer<RawType,S>)
     {}
 
-    Param (const char * name, detail::ParamPrinter<RawType> printer) :
+    Param (const char * name, detail::ParamPrinter<RawType>&& printer, const void * data = nullptr) :
         name(name),
         step(1),
         printer(printer),
-        incrementer(detail::DefaultIncrementer<RawType,S>)
+        incrementer(detail::DefaultIncrementer<RawType,S>),
+        userData(data)
     {}
 
-    Param (const char * name, S step, detail::ParamPrinter<RawType> printer) :
+    Param (const char * name, S step, detail::ParamPrinter<RawType>&& printer, const void* data = nullptr) :
         name(name),
         step(step),
         printer(printer),
-        incrementer(detail::DefaultIncrementer<RawType,S>)
+        incrementer(detail::DefaultIncrementer<RawType,S>),
+        userData(data)
     {}
 
-    Param (const char * name, V value, S step, detail::ParamPrinter<RawType> printer) :
+    Param (const char * name, V value, S step, detail::ParamPrinter<RawType>&& printer, const void * data = nullptr) :
         name(name),
         value(value),
         step(step),
         printer(printer),
-        incrementer(detail::DefaultIncrementer<RawType,S>)
+        incrementer(detail::DefaultIncrementer<RawType,S>),
+        userData(data)
     {}
 
-    Param (const char * name, S step, detail::ParamPrinter<RawType> printer, detail::ParamIncrementer<RawType,S> incrementer) :
+    Param (const char * name, S step, detail::ParamPrinter<RawType>&& printer, detail::ParamIncrementer<RawType,S> incrementer, const void * data = nullptr) :
         name(name),
         step(step),
         printer(printer),
-        incrementer(incrementer)
+        incrementer(incrementer),
+        userData(data)
     {}
 
     operator V() const { return value; }
@@ -134,17 +149,17 @@ public:
 
     void increment () {
         incrementer(true,value,step);
-        printer(name,value);
+        printer(name,value, userData);
     }
 
     void decrement () {
         incrementer(false,value,step);
-        printer(name,value);
+        printer(name,value,userData);
     }
 
     void set (const typename std::remove_reference<V>::type& newValue) {
         value = newValue;
-        printer(name,value);
+        printer(name,value,userData);
     }
 };
 

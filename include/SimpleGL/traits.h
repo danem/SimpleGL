@@ -83,6 +83,7 @@ namespace traits {
         static const bool value = v;
     };
 
+
     /**
     * Checks of a list of template paramters are all equal.
     *

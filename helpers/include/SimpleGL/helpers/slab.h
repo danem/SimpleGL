@@ -8,13 +8,10 @@ namespace sgl {
 
 template <GLenum kind>
 struct Surface {
-    static_assert(traits::IsTexture<kind>::value
-               || traits::IsRenderBuffer<kind>::value,
-               "Supplied target must be a texture or renderbuffer");
     sgl::Framebuffer fbo;
-    sgl::GLResource<kind> texture;
+    sgl::Texture<kind> texture;
 
-    Surface (sgl::GLResource<kind>& texture) :
+    Surface (sgl::Texture<kind>& texture) :
         texture(texture)
     {
         fbo.attachTexture(texture);
@@ -37,6 +34,11 @@ public:
         _surfA(a),
         _surfB(b),
         _useSurfA(true)
+    {}
+
+    Slab (const sgl::Surface<kind>&& a, const sgl::Surface<kind>&& b) :
+        _surfA(a),
+        _surfB(b)
     {}
 
     Surface<kind>& ping () {

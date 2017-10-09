@@ -122,8 +122,8 @@ namespace detail {
             sglDbgLogVerbose("%d:%d -> glBufferSubData(%d,%lu,%lu,%p);\n", kind, res, kind, len, start, data);
             sglDbgCatchGLError();
         }
-
     };
+
     template <GLenum kind>
     struct GLBufferInterface<kind, traits::IfRenderBuffer<kind>> {
     };
@@ -224,7 +224,9 @@ protected:
 public:
     static const GLenum type = kind;
 
-    GLResource ()  {
+    GLResource () :
+        _id(0)
+    {
         sgl::create<kind>(1, &_id);
     }
 
@@ -235,6 +237,10 @@ public:
     operator GLuint() const { return _id; }
 
     void bind () {
+        // TODO: This is a problem for structs containing GLResources that
+        // aren't easily initialized in the initializer list, such as Shaders.
+        // This means its easy to accidentally leak resource handles if you
+        // aren't careful. Consider reworking this API.
         sgl::bind<kind>(_id);
     }
 

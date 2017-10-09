@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CONTRIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/contrib)
 
 set(SHADER_FILES
+    ./data/fluid_fs.glsl
     ./data/fs.glsl
     ./data/game-of-life_fs.glsl
     ./data/ident_vs.glsl
@@ -28,6 +29,7 @@ endmacro(test_target)
 set(DEFINITIONS ${DEFINITIONS}
     -DSGL_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
+test_target(allocation-test  allocation-test.cc)
 test_target(context-test     context-test.cc)
 test_target(debug-test       debug-test.cc)
 test_target(framebuffer-test framebuffer-test.cc)
@@ -45,6 +47,7 @@ test_target(resource-test    resource-test.cc)
 test_target(shader-test      shader-test.cc)
 test_target(size-test        size-test.cc)
 test_target(ubo-test         ubo-test.cc)
+test_target(fluid-test       fluid-test.cc)
 test_target(texture-test     texture-test.cc)
 test_target(vertex-test      vertex-test.cc)
 test_target(traits-test      traits-test.cc)

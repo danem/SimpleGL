@@ -8,7 +8,7 @@
 #include <vector>
 #include <initializer_list>
 
-namespace sgl {
+namespace sgl{
 
 /**
 * ShaderStage represents a single compiled shader part (eg GL_VERTEX_SHADER).
@@ -19,6 +19,7 @@ template <GLenum kind>
 struct ShaderStage : public GLResource<kind> {
     static_assert(traits::IsShaderStage<kind>::value, "Invalid shader stage type");
 };
+
 
 using VertexShader   = ShaderStage<GL_VERTEX_SHADER>;
 using FragmentShader = ShaderStage<GL_FRAGMENT_SHADER>;
@@ -43,9 +44,10 @@ ShaderStage<kind> compileShaderStage (const char ** source, size_t len, const st
         GLsizei len = 0;
         glGetShaderInfoLog(shader, 200, &len, msgbuf);
         GLenum err = glGetError();
-        std::stringstream errMsg;
-        errMsg << "Got error code " << err << " while compiling: " << path << " \n" << msgbuf;
-        throw std::runtime_error(errMsg.str());
+        //std::stringstream errMsg;
+        sglCatchGLError();
+        //errMsg << "Got error code " << err << " while compiling: " << path << " \n" << msgbuf;
+        //throw std::runtime_error(errMsg.str());
     }
     return shader;
 }
@@ -55,6 +57,14 @@ ShaderStage<kind> compileShaderStage (const std::string& source, const std::stri
     const char * src = source.c_str();
     return compileShaderStage<kind>(&src, 1, path);
 }
+
+template<GLenum kind>
+ShaderStage<kind> compileShaderStage (const std::initializer_list<std::string>& source, const std::string& path ="") {
+    std::vector<const char *> strings;
+    for (const auto& s : source) strings.emplace_back(s.c_str());
+    return compileShaderStage<kind>(strings.data(), strings.size(), path);
+}
+
 
 template<GLenum kind>
 ShaderStage<kind> compileShaderStage (const std::vector<std::string>& source, const std::string& path ="") {
@@ -115,6 +125,14 @@ ShaderStage<kind> loadShaderStage (const std::array<std::string,len>& paths, con
     return compileShaderStage<kind>(files, name);
 }
 
+inline std::string loadShaderSource (const std::string& path) {
+    std::ifstream vf(path);
+    std::string src((std::istreambuf_iterator<char>(vf)),
+                    std::istreambuf_iterator<char>());
+    vf.close();
+    return src;
+}
+
 
 
 
@@ -155,7 +173,7 @@ public:
     GLint setUniformBool (const char * id, bool v);
 
     template <GLenum kind>
-    GLint setTexture (const std::string& id, sgl::GLResource<kind>& texture, int unit) {
+    GLint setTexture (const std::string& id, sgl::GLResource<kind>& texture, int unit=0) {
         static_assert(traits::IsTexture<kind>::value, "Must supply texture target");
         return setTexture(id, kind, (GLuint)texture, unit);
     }
@@ -199,21 +217,17 @@ namespace detail {
 // TODO: Having the signature like this kills IDEs code completion.
 // T Should be a ShaderStage ...
 template <class T, class ...Ts>
-Shader linkShaderStages (T& stage, Ts ...stages) {
-    Shader shader;
+void linkShaderStages (Shader& shader, T& stage, Ts ...stages) {
     detail::linkShaderStagesHelper(shader,stage,stages...);
     glLinkProgram(shader);
     detail::catchShaderLinkErrors(shader);
-    return shader;
 }
 
 template <class T>
-Shader linkShaderStages (T& stage) {
-    Shader shader;
+void linkShaderStages (Shader& shader, T& stage) {
     detail::linkShaderStagesHelper(shader,stage);
     glLinkProgram(shader);
     detail::catchShaderLinkErrors(shader);
-    return shader;
 }
 
 // Dead simple interface

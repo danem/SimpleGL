@@ -61,7 +61,6 @@ inline void sglInitialize (int major, int minor) {
     config::__sglOpenGLState__.version_minor = minor;
 #if SGL_DEBUG >= 1
     printf("SGL OpenGL Version %d.%d\n", major, minor);
-    printf("SGL Debug Log Supported: %d\n", config::__sglOpenGLState__.debuglogSupported);
 #endif
 }
 

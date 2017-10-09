@@ -4,38 +4,50 @@ using namespace sgl;
 
 Shader sgl::loadShader (const std::string& computePath) {
     auto stage = resource_guard(loadShaderStage<GL_COMPUTE_SHADER>(computePath));
-    return linkShaderStages(stage.get());
+    Shader shader;
+    linkShaderStages(shader, stage.get());
+    return shader;
 }
 
 Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath) {
     auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
     auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
-    return linkShaderStages(vs.get(),fs.get());
+    Shader shader;
+    linkShaderStages(shader, vs.get(), fs.get());
+    return shader;
 }
 
 Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath) {
     auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
     auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
     auto gs = resource_guard(loadShaderStage<GL_GEOMETRY_SHADER>(geomPath));
-    return linkShaderStages(vs.get(),fs.get(),gs.get());
+    Shader shader;
+    linkShaderStages(shader, vs.get(),fs.get(),gs.get());
+    return shader;
 }
 
 Shader sgl::compileShader (const std::string& computeSrc) {
     auto stage = resource_guard(compileShaderStage<GL_COMPUTE_SHADER>(computeSrc));
-    return linkShaderStages(stage.get());
+    Shader shader;
+    linkShaderStages(shader, stage.get());
+    return shader;
 }
 
 Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc) {
     auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
     auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
-    return linkShaderStages(vs.get(),fs.get());
+    Shader shader;
+    linkShaderStages(shader, vs.get(),fs.get());
+    return shader;
 }
 
 Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc) {
     auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
     auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
     auto gs = resource_guard(compileShaderStage<GL_GEOMETRY_SHADER>(geomSrc));
-    return linkShaderStages(vs.get(),fs.get(),gs.get());
+    Shader shader;
+    linkShaderStages(shader, vs.get(),fs.get(),gs.get());
+    return shader;
 }
 
 GLint Shader::getLocation (const char * id) {

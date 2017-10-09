@@ -23,6 +23,7 @@ set(HEADER_FILES
     ${INCLUDE_DIR}/SimpleGL/helpers/mesh.h
     ${INCLUDE_DIR}/SimpleGL/helpers/param.h
     ${INCLUDE_DIR}/SimpleGL/helpers/pbo.h
+    ${INCLUDE_DIR}/SimpleGL/helpers/slab.h
     ${INCLUDE_DIR}/SimpleGL/helpers/transform.h
 )
 

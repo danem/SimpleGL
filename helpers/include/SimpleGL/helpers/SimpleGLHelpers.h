@@ -8,6 +8,7 @@
 #include "mesh.h"
 #include "param.h"
 #include "pbo.h"
+#include "slab.h"
 #include "transform.h"
 
 namespace sgl {

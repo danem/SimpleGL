@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp> 
 
 
-void printVec3 (const char * name, const glm::vec3& vec) {
+void printVec3 (const char * name, const glm::vec3& vec, const void * data) {
     std::cout << name << ": " << vec.x << ", " << vec.y << ", " << vec.z << std::endl;
 }
 

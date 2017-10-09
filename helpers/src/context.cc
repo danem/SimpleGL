@@ -7,6 +7,7 @@
 using namespace sgl;
 
 #define GLBOOL(v) ((v) ? GL_TRUE : GL_FALSE)
+#define BITSET_(v,x) ((v & x) == x)
 
 static int getGLProfile (GLProfile profile) {
     if (profile == GLProfile::CORE) return GLFW_OPENGL_CORE_PROFILE;
@@ -49,7 +50,7 @@ static void __handleMouseScroll (GLFWwindow* window, double xoff, double yoff) {
 static void __handleKeyEvent (GLFWwindow* window, int key, int scancode, int action, int mods){ 
     detail::UserState * state = (detail::UserState*) glfwGetWindowUserPointer(window);
     for (auto& handler : state->keyHandlers) {
-        handler({action, key, false, false, false});
+        handler({action, key, BITSET_(mods,GLFW_MOD_SHIFT), false, false});
     }
 }
 
@@ -141,9 +142,21 @@ void Context::addKeyHandler (sgl::KeyHandler handler) {
     _userState.keyHandlers.emplace_back(handler);
 }
 
+/*
+void Context::addKeyHandler (sgl::KeyHandler&& handler) {
+    _userState.keyHandlers.emplace_back(handler);
+}
+*/
+
 void Context::addMouseHandler (sgl::MouseHandler handler) {
     _userState.mouseHandlers.emplace_back(handler);
 }
+
+/*
+void Context::addMouseHandler (sgl::MouseHandler&& handler) {
+    _userState.mouseHandlers.emplace_back(handler);
+}
+*/
 
 void Context::swapBuffers () {
     glfwSwapBuffers(_windowState);

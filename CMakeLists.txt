@@ -33,6 +33,11 @@ if(${SGL_DEBUG})
     set(DEFINITIONS ${DEFINITIONS} -DSGL_DEBUG=1)
 endif()
 
+if (${SGL_USE_ANDROID})
+    #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+endif()
+    set(ANDROID_STL stlport_static)
+
 
 set(INCLUDE_FILES
     ${INCLUDE_DIR}/SimpleGL/SimpleGL.h

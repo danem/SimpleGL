@@ -1,3 +1,4 @@
+#define SGL_DEBUG 3
 #include <SimpleGL/helpers/SimpleGLHelpers.h>
 #include "sgl-test.h"
 #include <glm/glm.hpp>

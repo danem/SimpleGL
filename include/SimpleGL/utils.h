@@ -104,7 +104,6 @@ static inline void __sglDebugMessageCallback(GLenum source, GLenum type, GLuint 
 }
 
 static void initializeDebugging (const DebugConfig& config) {
-    if (!SGL_DEBUGLOG_SUPPORTED) sglDbgLog("Debug log is only supported in > OpenGL 4.4\n"); return;
     for (const auto& l : config.levels) {
         glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
     }
