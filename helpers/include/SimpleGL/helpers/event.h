@@ -174,7 +174,7 @@ public:
 };
            
 
-struct MouseDragState {
+struct DragEvent {
     double ox, oy;
     double mx, my;
     double dx, dy;
@@ -198,25 +198,25 @@ public:
     virtual void operator() (const MouseEvent& event) override;
 
     virtual void onDragStart () = 0;
-    virtual void onDrag (double ox, double oy, double mx, double my, double dx, double dy) = 0;
+    virtual void onDrag (const DragEvent& event) = 0;
     virtual void onDragEnd () = 0;
     virtual void onScroll (double sx, double sy) = 0;
 };
 
 class SimpleDragger : public MouseDraggerBase {
 private:
-    using handler = std::function<void (double,double,double,double,double,double)>;
+    using handler = std::function<void (const DragEvent&)>;
     handler _onDrag;
 
 public:
-    SimpleDragger (handler& onDrag) :
+    SimpleDragger (const handler&& onDrag) :
         _onDrag(onDrag)
     {}
 
     void onDragStart () override {}
     void onDragEnd () override {}
-    void onDrag (double ox, double oy, double mx, double my, double dx, double dy) override {
-        _onDrag(ox,oy,mx,my,dx,dy);
+    void onDrag (const DragEvent& event) override {
+        _onDrag(event);
     }
 
     void onScroll (double sx, double sy) override {}

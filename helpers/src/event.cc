@@ -20,7 +20,8 @@ void MouseDraggerBase::operator() (const MouseEvent& event) {
         double dy = event.y - _my;
         _mx = event.x;
         _my = event.y;
-        onDrag(_ox, _oy, _mx, _my, dx, dy);
+        sgl::DragEvent evt{_ox,_oy, _mx, _my, dx, dy};
+        onDrag(evt);
     } else if (event.eventType == RELEASE) {
         onDragEnd();
         _mx = _my = _ox = _oy = -1;

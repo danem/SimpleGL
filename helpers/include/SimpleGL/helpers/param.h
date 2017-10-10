@@ -161,6 +161,10 @@ public:
         value = newValue;
         printer(name,value,userData);
     }
+
+    RawType get () {
+        return value;
+    }
 };
 
 

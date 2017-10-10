@@ -1,4 +1,4 @@
-#define SGL_DEBUG 1
+#define SGL_DEBUG 2
 #include <SimpleGL/helpers/SimpleGLHelpers.h>
 #include "sgl-test.h"
 
@@ -11,6 +11,14 @@
 #include <thread>
 
 using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned char>;
+
+void clearColor (sgl::Framebuffer& fbo, float v){
+
+    auto bg = sgl::bind_guard(fbo);
+    glClearColor(v,v,v,1);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0,0,0,1);
+}
 
 void clearColor (sgl::Framebuffer& fbo, float r, float g, float b, float a){
     auto bg = sgl::bind_guard(fbo);
@@ -58,6 +66,7 @@ struct SimState {
     float gradientScale;
     float impulseDensity;
     float obstacleRadius;
+    float noiseWeight;
     glm::vec2 obstaclePosition;
     int numJacobiIterations;
     glm::vec2 position;
@@ -68,6 +77,7 @@ struct SimState {
     sgl::Slab2D temperature;
     sgl::Surface2D divergence;
     sgl::Surface2D obstacles;
+    sgl::Slab2D noise;
 
     // Ensure we don't double allocate.
     // See note in resource.h
@@ -93,13 +103,15 @@ struct SimState {
         temperature(createSlab(w,h,1)),
         divergence(createSurface(w,h,3)),
         obstacles(createSurface(w,h,3)),
+        noise(createSlab(w,h,2)),
+        noiseWeight(0.00001f),
         timeStep(0.01f),
         cellSize(1.25f),
         smokeBouyancy(1.0f),
         smokeWeight(0.05f),
         gradientScale(1.125f / cellSize),
         temperatureDissipation(0.99f),
-        ambientTemperature(0.6f),
+        ambientTemperature(1.0f),
         velocityDissipation(0.99f),
         densityDissipation(0.9999f),
         splatRadius(gridWidth / 8.0f),
@@ -123,6 +135,25 @@ struct SimState {
         linkShader(bouyancyShader  , identShader, fragSource, "BOUYANCY_SHADER");
         linkShader(obstacleShader  , identShader, fragSource, "OBSTACLE_SHADER");
         linkShader(textureShader   , identShader, fragSource, "VISUALIZE_SHADER");
+    }
+
+    void release () {
+        subtractShader.release();
+        jacobiShader.release();
+        advectShader.release();
+        impulseShader.release();
+        divergenceShader.release();
+        bouyancyShader.release();
+        obstacleShader.release();
+        textureShader.release();
+        velocity.release();
+        density.release();
+        temperature.release();
+        pressure.release();
+        obstacles.release();
+        divergence.release();
+        renderQuad.release();
+        fbo.bind();
     }
 
 private:
@@ -175,12 +206,12 @@ void applyAdvect (
     auto bg = sgl::bind_guard(dest.fbo);
 
     state.advectShader.bind();
-    state.advectShader.setTexture("velocityTexture", velocity.texture, 0);
-    state.advectShader.setTexture("sourceTexture", source.texture, 1);
-    state.advectShader.setTexture("obstacleTexture", obstacles.texture, 2);
-    state.advectShader.setUniform2fv("inverseSize", 1.f / state.width, 1.f / state.height);
-    state.advectShader.setUniform1f("timeStep", state.timeStep);
-    state.advectShader.setUniform1f("dissipation", dissipation);
+    state.advectShader.setTexture("VelocityTexture", velocity.texture, 0);
+    state.advectShader.setTexture("SourceTexture", source.texture, 1);
+    state.advectShader.setTexture("Obstacles", obstacles.texture, 2);
+    state.advectShader.setUniform2fv("InverseSize", 1.f / state.width, 1.f / state.height);
+    state.advectShader.setUniform1f("TimeStep", state.timeStep);
+    state.advectShader.setUniform1f("Dissipation", dissipation);
 
     state.renderQuad.bind();
     glDrawElements(GL_TRIANGLES, state.renderQuad.size, GL_UNSIGNED_INT, 0);
@@ -289,50 +320,59 @@ struct Dragger : public sgl::MouseDraggerBase {
 
     void onDragStart () override {}
     void onDragEnd () override {}
-    void onDrag (double ox, double oy, double mx, double my, double dx, double dy) override {
-        state.position = {mx,state.height-my};
+    void onDrag (const sgl::DragEvent& event) override {
+        state.position = {event.mx,state.height-event.my};
     }
 
     void onScroll (double sx, double sy) override {}
 };
 
 
-void listPrinter (const char * name, const int& value, const void * data) {
-    auto values = static_cast<const char * const *>(data);
-    std::cout << name << ": " << values[value] << std::endl;
-}
-
 int main () {
-    sgl::Context ctx(500,500,"fluid sim");
+    sgl::Context ctx(500,900,"fluid sim");
     SimState state(ctx.attrs.width, ctx.attrs.height);
 
     const char * slabNames [] = {
         "velocity", "temperature",
-        "density", "pressure"
+        "density", "pressure", "divergence",
+        "noise"
     };
 
-    sgl::Slab2D slabs[] = {
-        state.velocity,
-        state.temperature,
-        state.density,
-        state.pressure
+    sgl::Surface2D slabs[] = {
+        state.velocity.ping(),
+        state.temperature.ping(),
+        state.density.ping(),
+        state.pressure.ping(),
+        state.divergence,
+        state.noise.ping()
     };
 
 
-    sgl::Param<int> currentSlab{"current slab", listPrinter, slabNames};
+    sgl::Param<int> renderStage{"render stage"};
+    sgl::Param<int> currentSlab{"current slab", &sgl::ListPrinter<int,char*>::print, slabNames};
     sgl::Param<float&> timeStep{"time step",state.timeStep, 0.01f};
     sgl::Param<float&> ambientTemp{"ambient temperature", state.ambientTemperature, 0.01f};
+    sgl::Param<float&> tempDisp {"temperature dissipation", state.temperatureDissipation, 0.01f};
+    sgl::Param<float&> densityDisp {"density dissipation", state.densityDissipation, 0.01f};
     sgl::Param<float&> impulseTemp{"impulse temperature", state.impulseTemperature, 0.1f};
     sgl::Param<float&> impulseDensity {"impulse density", state.impulseDensity, 0.1f};
     sgl::Param<int&> jacobiIters{"jacobi iterations", state.numJacobiIterations, 1};
-
     sgl::Param<float&> splatRadius{"splat radius", state.splatRadius, 1.f};
-    sgl::Param<int> renderStage{"render stage"};
-    sgl::Param<float&> gradientScale{"gradient scale", state.gradientScale, 0.05f};
+    sgl::Param<float&> gradientScale{"gradient scale", state.gradientScale, 0.01f};
     sgl::Param<float&> smokeWeight{"smoke weight", state.smokeWeight, 0.01f};
-    sgl::Param<float&> velocityDisp {"velociy dissipation", state.velocityDissipation, 0.1f};
+    sgl::Param<float&> smokeBouyancy{"smoke bouyancy", state.smokeBouyancy, 0.01f};
+    sgl::Param<float&> velocityDisp {"velociy dissipation", state.velocityDissipation, 0.01f};
+    sgl::Param<float&> cellSize{"cell size", state.cellSize, 0.01f};
+    sgl::Param<bool> advectDensity{"advect density", true};
+    sgl::Param<bool> advectTemperature{"advect temperature", true};
+    sgl::Param<bool> advectVelocity{"advect velocity", true};
+    bool continueRendering = true;
 
     renderStage.set(4);
+    currentSlab.set(1);
+    advectTemperature.set(true);
+    advectDensity.set(true);
+    advectVelocity.set(true);
 
     Dragger dragger{state};
     ctx.addMouseHandler(dragger);
@@ -340,29 +380,43 @@ int main () {
         &currentSlab, &timeStep, &ambientTemp,
         &impulseTemp, &jacobiIters, &splatRadius,
         &renderStage,&gradientScale,&smokeWeight,
-        &velocityDisp, &impulseDensity](const sgl::KeyEvent& evt) {
+        &velocityDisp, &impulseDensity, &tempDisp,
+        &smokeBouyancy, &densityDisp, &cellSize,
+        &continueRendering, &advectDensity, &advectTemperature,
+        &advectVelocity](const sgl::KeyEvent& evt) {
         if (evt.eventType != sgl::RELEASE && evt.eventType != sgl::REPEAT) return;
-        if (evt.key == sgl::KEY_A) currentSlab.set((currentSlab + 1) % 4);
-        else if (evt.key == sgl::KEY_Z) evt.shiftPressed ? timeStep.decrement() : timeStep.increment();
-        else if (evt.key == sgl::KEY_X) evt.shiftPressed ? ambientTemp.decrement() : ambientTemp.increment();
-        else if (evt.key == sgl::KEY_C) evt.shiftPressed ? impulseTemp.decrement() : impulseTemp.increment();
-        else if (evt.key == sgl::KEY_B) evt.shiftPressed ? jacobiIters.decrement() : jacobiIters.increment();
-        else if (evt.key == sgl::KEY_W) evt.shiftPressed ? splatRadius.decrement() : splatRadius.increment();
+        if (evt.key == sgl::KEY_A) currentSlab.set((currentSlab + 1) % 6);
         else if (evt.key == sgl::KEY_Q) renderStage.set((renderStage + 1) % 5);
-        else if (evt.key == sgl::KEY_E) evt.shiftPressed ? gradientScale.decrement() : gradientScale.increment();
-        else if (evt.key == sgl::KEY_R) evt.shiftPressed ? smokeWeight.decrement() : smokeWeight.increment();
+        else if (evt.key == sgl::KEY_Z) evt.shiftPressed ? timeStep.decrement() : timeStep.increment();
+        else if (evt.key == sgl::KEY_M) evt.shiftPressed ? ambientTemp.decrement() : ambientTemp.increment();
+        else if (evt.key == sgl::KEY_C) evt.shiftPressed ? impulseTemp.decrement() : impulseTemp.increment();
+        else if (evt.key == sgl::KEY_J) evt.shiftPressed ? jacobiIters.decrement() : jacobiIters.increment();
+        else if (evt.key == sgl::KEY_R) evt.shiftPressed ? splatRadius.decrement() : splatRadius.increment();
+        else if (evt.key == sgl::KEY_G) evt.shiftPressed ? gradientScale.decrement() : gradientScale.increment();
+        else if (evt.key == sgl::KEY_W) evt.shiftPressed ? smokeWeight.decrement() : smokeWeight.increment();
         else if (evt.key == sgl::KEY_V) evt.shiftPressed ? velocityDisp.decrement() : velocityDisp.increment();
-        else if (evt.key == sgl::KEY_N) evt.shiftPressed ? impulseDensity.decrement() : impulseDensity.increment();
+        else if (evt.key == sgl::KEY_D) evt.shiftPressed ? impulseDensity.decrement() : impulseDensity.increment();
+        else if (evt.key == sgl::KEY_T) evt.shiftPressed ? tempDisp.decrement() : tempDisp.increment();
+        else if (evt.key == sgl::KEY_B) evt.shiftPressed ? smokeBouyancy.decrement() : smokeBouyancy.increment();
+        else if (evt.key == sgl::KEY_L) evt.shiftPressed ? densityDisp.decrement() : densityDisp.increment();
+        else if (evt.key == sgl::KEY_S) evt.shiftPressed ? cellSize.decrement() : cellSize.increment();
+        else if (evt.key == sgl::KEY_ESCAPE) continueRendering = false;
+        else if (evt.key == sgl::KEY_1) advectDensity.set(!advectDensity.get());
+        else if (evt.key == sgl::KEY_2) advectVelocity.set(!advectVelocity.get());
+        else if (evt.key == sgl::KEY_3) advectTemperature.set(!advectTemperature.get());
     });
 
     random_bytes_engine rbe;
-    std::vector<unsigned char> data(state.velocity.ping().texture.attrs.size());
+    std::vector<unsigned char> data(state.noise.ping().texture.attrs.size());
     std::generate(begin(data), end(data), std::ref(rbe));
 
     //sgl::updateTexture(state.velocity.ping().texture, data.data(), 0, 0);
     //sgl::updateTexture(state.temperature.ping().texture, data.data(), 0, 0);
     //sgl::updateTexture(state.density.ping().texture, data.data(), 0, 0);
-    //clearColor(state.temperature.ping().fbo, 1, 0, 0, 1);
+    sgl::updateTexture(state.noise.ping().texture, data.data(), 0, 0);
+
+    //clearColor(state.density.ping().fbo, 1, 0, 0, 1);
+    clearColor(state.temperature.ping().fbo, state.ambientTemperature);
 
     initObstacles(state, state.obstacles);
 
@@ -370,33 +424,35 @@ int main () {
 
     while (ctx.isAlive()){
         ctx.pollEvents();
-        applyAdvect(state,
-            state.velocity.ping(), state.velocity.ping(),
-            state.obstacles, state.velocity.pong(),
-            state.velocityDissipation
-        );
-        state.velocity.swap();
+        if (advectVelocity) {
+            applyAdvect(state,
+                state.velocity.ping(), state.velocity.ping(),
+                state.obstacles, state.velocity.pong(),
+                state.velocityDissipation
+            );
+            state.velocity.swap();
+        }
 
-        if (renderStage == 0) { visualize(state, slabs[currentSlab].ping().texture); goto end;}
+        if (advectTemperature){
+            applyAdvect(
+                state,
+                state.velocity.ping(), state.temperature.ping(),
+                state.obstacles, state.temperature.pong(),
+                state.temperatureDissipation
+            );
+            state.temperature.swap();
+        }
 
 
-        applyAdvect(
-            state,
-            state.velocity.ping(), state.temperature.ping(),
-            state.obstacles, state.temperature.pong(),
-            state.temperatureDissipation
-        );
-        state.temperature.swap();
-
-
-        applyAdvect(
-            state,
-            state.velocity.ping(), state.density.ping(),
-            state.obstacles, state.density.pong(),
-            state.densityDissipation
-        );
-        state.density.swap();
-
+        if (advectDensity) {
+            applyAdvect(
+                state,
+                state.velocity.ping(), state.density.ping(),
+                state.obstacles, state.density.pong(),
+                state.densityDissipation
+            );
+            state.density.swap();
+        }
 
         applyBouyancy(
             state,
@@ -406,22 +462,22 @@ int main () {
         state.velocity.swap();
 
 
-        if (renderStage == 1) { visualize(state, slabs[currentSlab].ping().texture); goto end;}
+        if (renderStage == 1) { visualize(state, slabs[currentSlab].texture); goto end;}
 
         applyImpulse(state, state.temperature.ping(), state.position, state.impulseTemperature);
         applyImpulse(state, state.density.ping(), state.position, state.impulseDensity);
         applyDivergence(state, state.velocity.ping(), state.obstacles, state.divergence);
 
-        if (renderStage == 2) { visualize(state, slabs[currentSlab].ping().texture); goto end;}
+        if (renderStage == 2) { visualize(state, slabs[currentSlab].texture); goto end;}
 
-        //clearColor(state.pressure.ping().fbo, 0, 1, 0, 1);
+        clearColor(state.pressure.ping().fbo, 0, 0, 0, 0);
 
         for (int i = 0; i < state.numJacobiIterations; i++){
             applyJacobi(state, state.pressure.ping(), state.divergence, state.obstacles, state.pressure.pong());
             state.pressure.swap();
         }
 
-        if (renderStage == 3) { visualize(state, slabs[currentSlab].ping().texture); goto end;}
+        if (renderStage == 3) { visualize(state, slabs[currentSlab].texture); goto end;}
 
         applySubtract(
             state,
@@ -431,7 +487,7 @@ int main () {
         state.velocity.swap();
 
 
-        visualize(state, slabs[currentSlab].ping().texture);
+        visualize(state, slabs[currentSlab].texture);
 end:
         ctx.swapBuffers();
     }

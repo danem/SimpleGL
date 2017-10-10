@@ -114,6 +114,8 @@ void Context::initialize () {
     glfwSetKeyCallback(_windowState, __handleKeyEvent);
 
     sgl::sglInitialize(attrs.glVersionMajor, attrs.glVersionMinor);
+    int w, h;
+    glfwGetFramebufferSize(_windowState, &w, &h);
     sglClearGLError();
 
 }

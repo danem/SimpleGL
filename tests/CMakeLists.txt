@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CONTRIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/contrib)
 
 set(SHADER_FILES
+    ./data/dejong_fs.glsl
+    ./data/dejong_vs.glsl
     ./data/fluid_fs.glsl
     ./data/fs.glsl
     ./data/game-of-life_fs.glsl
@@ -32,6 +34,7 @@ set(DEFINITIONS ${DEFINITIONS}
 test_target(allocation-test  allocation-test.cc)
 test_target(context-test     context-test.cc)
 test_target(debug-test       debug-test.cc)
+test_target(dejong-test      dejong-test.cc)
 test_target(framebuffer-test framebuffer-test.cc)
 test_target(game-of-life     game-of-life.cc)
 test_target(instanced-test   instanced-test.cpp)

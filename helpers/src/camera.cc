@@ -60,9 +60,9 @@ void CameraController::onDragStart() {
 
 void CameraController::onDragEnd() {}
 
-void CameraController::onDrag (double ox, double oy, double mx, double my, double dx, double dy) {
-    double _dx = mx - ox;
-    double _dy = my - oy;
+void CameraController::onDrag (const sgl::DragEvent& event) {
+    double _dx = event.mx - event.ox;
+    double _dy = event.my - event.oy;
 
     float ax = (float)(_dx / _width);
     float ay = (float)(_dy / _height);

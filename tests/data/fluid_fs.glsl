@@ -81,30 +81,29 @@
     }
 
 #elif defined(ADVECT_SHADER)
+
     out vec4 FragColor;
 
-    uniform sampler2D velocityTexture;
-    uniform sampler2D sourceTexture;
-    uniform sampler2D obstacleTexture;
+    uniform sampler2D VelocityTexture;
+    uniform sampler2D SourceTexture;
+    uniform sampler2D Obstacles;
 
-    uniform vec2 inverseSize;
-    uniform float timeStep;
-    uniform float dissipation;
-
-    in vec2 TexCoord;
+    uniform vec2 InverseSize;
+    uniform float TimeStep;
+    uniform float Dissipation;
 
     void main()
     {
         vec2 fragCoord = gl_FragCoord.xy;
-        float solid = texture(obstacleTexture, inverseSize * fragCoord).x;
+        float solid = texture(Obstacles, InverseSize * fragCoord).x;
         if (solid > 0) {
             FragColor = vec4(0);
             return;
         }
 
-        vec2 u = texture(velocityTexture, inverseSize * fragCoord).xy;
-        vec2 coord = inverseSize * (fragCoord - timeStep * u);
-        FragColor = dissipation * texture(sourceTexture, coord);
+        vec2 u = texture(VelocityTexture, InverseSize * fragCoord).xy;
+        vec2 coord = InverseSize * (fragCoord - TimeStep * u);
+        FragColor = Dissipation * texture(SourceTexture, coord);
     }
 
 #elif defined(BOUYANCY_SHADER)
@@ -117,12 +116,13 @@
     uniform float sigma;
     uniform float kappa;
 
+    in vec2 TexCoord;
+
     void main()
     {
         ivec2 TC = ivec2(gl_FragCoord.xy);
         float T = texelFetch(tempTexture, TC, 0).r;
         vec2 V = texelFetch(velocityTexture, TC, 0).xy;
-
         FragColor = V;
 
         if (T > ambientTemperature) {

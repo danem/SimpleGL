@@ -16,21 +16,29 @@ struct Surface {
     {
         fbo.attachTexture(texture);
     }
+
+    void release () {
+        fbo.release();
+        texture.release();
+    }
 };
 
 template <GLenum kind>
 struct Slab {
 private:
-    static_assert(traits::IsTexture<kind>::value
-               || traits::IsRenderBuffer<kind>::value,
-               "Supplied target must be a texture or renderbuffer");
 
     Surface<kind> _surfA;
     Surface<kind> _surfB;
     bool _useSurfA;
 
 public:
-    Slab (sgl::GLResource<kind>& a, sgl::GLResource<kind>& b) :
+    Slab (sgl::Texture<kind>& a, sgl::Texture<kind>& b) :
+        _surfA(a),
+        _surfB(b),
+        _useSurfA(true)
+    {}
+
+    Slab (const sgl::Surface<kind>& a, const sgl::Surface<kind>& b) :
         _surfA(a),
         _surfB(b),
         _useSurfA(true)
@@ -38,7 +46,8 @@ public:
 
     Slab (const sgl::Surface<kind>&& a, const sgl::Surface<kind>&& b) :
         _surfA(a),
-        _surfB(b)
+        _surfB(b),
+        _useSurfA(true)
     {}
 
     Surface<kind>& ping () {
@@ -53,6 +62,11 @@ public:
 
     void swap () {
         _useSurfA = !_useSurfA;
+    }
+
+    void release () {
+        _surfA.release();
+        _surfB.release();
     }
 };
 

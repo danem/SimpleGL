@@ -554,6 +554,10 @@ namespace detail {
             return _data;
         }
 
+        D& operator[] (size_t idx) {
+            return _data[idx];
+        }
+
 
         void commit () {
             sgl::bind<kind>(_res);
