@@ -1,4 +1,3 @@
-#define SGL_DEBUG 2
 #include <SimpleGL/helpers/SimpleGLHelpers.h>
 #include "sgl-test.h"
 
