@@ -12,19 +12,16 @@
 
 using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned char>;
 
-void clearColor (sgl::Framebuffer& fbo, float v){
-
-    auto bg = sgl::bind_guard(fbo);
-    glClearColor(v,v,v,1);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0,0,0,1);
-}
 
 void clearColor (sgl::Framebuffer& fbo, float r, float g, float b, float a){
     auto bg = sgl::bind_guard(fbo);
     glClearColor(r,g,b,a);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0,0,0,1);
+}
+
+void clearColor (sgl::Framebuffer& fbo, float v){
+    clearColor(fbo, v, v, v, 1.f);
 }
 
 sgl::Surface2D createSurface (int w, int h, int components) {
@@ -47,7 +44,6 @@ sgl::Slab2D createSlab (int w, int h, int components) {
 
 struct SimState {
     sgl::Framebuffer fbo;
-
 
     size_t width;
     size_t height;
@@ -153,7 +149,7 @@ struct SimState {
         obstacles.release();
         divergence.release();
         renderQuad.release();
-        fbo.bind();
+        fbo.release();
     }
 
 private:
