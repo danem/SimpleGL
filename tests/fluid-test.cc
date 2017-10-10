@@ -305,24 +305,6 @@ void applySubtract (
     sglDbgCatchGLError();
 }
 
-
-struct Dragger : public sgl::MouseDraggerBase {
-    SimState& state;
-
-    Dragger(SimState& state) :
-        state(state)
-    {}
-
-    void onDragStart () override {}
-    void onDragEnd () override {}
-    void onDrag (const sgl::DragEvent& event) override {
-        state.position = {event.mx,state.height-event.my};
-    }
-
-    void onScroll (double sx, double sy) override {}
-};
-
-
 int main () {
     sgl::Context ctx(500,900,"fluid sim");
     SimState state(ctx.attrs.width, ctx.attrs.height);
@@ -364,13 +346,15 @@ int main () {
     bool continueRendering = true;
 
     renderStage.set(4);
-    currentSlab.set(1);
+    currentSlab.set(3);
     advectTemperature.set(true);
     advectDensity.set(true);
     advectVelocity.set(true);
 
-    Dragger dragger{state};
-    ctx.addMouseHandler(dragger);
+    ctx.addMouseHandler(sgl::SimpleDragger{[&state](const sgl::DragEvent& event) {
+        state.position = {event.mx, state.height - event.my};
+    }});
+
     ctx.addKeyHandler([
         &currentSlab, &timeStep, &ambientTemp,
         &impulseTemp, &jacobiIters, &splatRadius,
