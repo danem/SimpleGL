@@ -47,9 +47,12 @@ target_include_directories(SimpleGLHelpers PUBLIC ${EXTERN_INCLUDES} ${INCLUDE_D
 install(TARGETS SimpleGLHelpers  ARCHIVE DESTINATION lib)
 install(DIRECTORY ${INCLUDE_DIR}/SimpleGL/helpers DESTINATION include/SimpleGL)
 
-add_custom_target(install_SimpleGLHelpers
-    COMMAND make install
-)
+if (WIN32)
+else()
+    add_custom_target(install_SimpleGLHelpers
+        COMMAND make install
+    )
+endif()
 
 
 

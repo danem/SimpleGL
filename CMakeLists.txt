@@ -102,6 +102,12 @@ endif()
 install(TARGETS SimpleGL ARCHIVE DESTINATION lib)
 install(DIRECTORY ${INCLUDE_DIR}/SimpleGL DESTINATION include)
 
-add_custom_target(install_SimpleLG3
-    COMMAND make install
-)
+if (WIN32)
+    add_custom_target(install_SimpleGL
+        COMMAND make install
+    )
+else()
+    add_custom_target(install_SimpleGL
+        COMMAND make install
+    )
+endif()

@@ -9,7 +9,7 @@
 #include <chrono>
 #include <thread>
 
-using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned char>;
+//using random_bytes_engine = std::independent_bits_engine<std::default_random_engine, CHAR_BIT, unsigned char>;
 
 
 void clearColor (sgl::Framebuffer& fbo, float r, float g, float b, float a){
@@ -385,14 +385,16 @@ int main () {
         else if (evt.key == sgl::KEY_3) advectTemperature.set(!advectTemperature.get());
     });
 
+    /*
     random_bytes_engine rbe;
     std::vector<unsigned char> data(state.noise.ping().texture.attrs.size());
     std::generate(begin(data), end(data), std::ref(rbe));
+    */
 
     //sgl::updateTexture(state.velocity.ping().texture, data.data(), 0, 0);
     //sgl::updateTexture(state.temperature.ping().texture, data.data(), 0, 0);
     //sgl::updateTexture(state.density.ping().texture, data.data(), 0, 0);
-    sgl::updateTexture(state.noise.ping().texture, data.data(), 0, 0);
+    //sgl::updateTexture(state.noise.ping().texture, data.data(), 0, 0);
 
     //clearColor(state.density.ping().fbo, 1, 0, 0, 1);
     clearColor(state.temperature.ping().fbo, state.ambientTemperature);

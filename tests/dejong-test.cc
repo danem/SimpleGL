@@ -13,7 +13,8 @@ int main () {
     sgl::Param<float> bval{"b", -0.09f, 0.01f};
     sgl::Param<float> cval{"c", -0.86f, 0.01f};
     sgl::Param<float> dval{"d", -2.2f, 0.01f};
-    sgl::Param<glm::vec2> pos{"position", sgl::VecPrinter};
+    //sgl::Param<glm::vec2> pos{"position", sgl::VecPrinter};
+    glm::vec2 pos;
     bool recompute = true;
 
     ctx.addKeyHandler([
@@ -27,7 +28,7 @@ int main () {
     });
 
     ctx.addMouseHandler(sgl::SimpleDragger{[&pos,&recompute](const sgl::DragEvent& event) {
-        pos.set({event.mx, event.my});
+        pos = {event.mx, event.my};
         recompute = true;
     }});
 
@@ -53,8 +54,8 @@ int main () {
         glClear(GL_COLOR_BUFFER_BIT);
 
         if (recompute) {
-            float px = pos.get().x;
-            float py = pos.get().y;
+            float px = pos.x;
+            float py = pos.y;
             auto bv  = sgl::buffer_view<glm::vec2>(pointBuf); // TODO: Fix template deduction.
             for (size_t i = 0; i < pointBufSize; i++){
                 float x = std::sin(aval.get() * py) - std::cos(bval.get() * px);

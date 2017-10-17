@@ -31,6 +31,7 @@ int main () {
     zp.increment();
     std::cout << "z: " << z << std::endl;
 
+    /*
     // Different value and step types. Custom printer
     sgl::Param<glm::vec3,float> gp("vec", 1, printVec3);
     gp.increment();
@@ -40,4 +41,5 @@ int main () {
     sgl::Param<glm::vec3,float> gp2("vecx", 1, printVec3, addX);
     gp2.increment();
     gp2.increment();
+    */
 }
