@@ -116,6 +116,10 @@ void Context::initialize () {
     sgl::sglInitialize(attrs.glVersionMajor, attrs.glVersionMinor);
     int w, h;
     glfwGetFramebufferSize(_windowState, &w, &h);
+
+    attrs.width = w;
+    attrs.height = h;
+
     sglClearGLError();
 
 }

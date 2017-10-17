@@ -2,60 +2,85 @@
 
 using namespace sgl;
 
+
+Shader sgl::compileShader (const std::string& computeSrc) {
+    sgl::Shader prog;
+    sgl::compileShader(prog, computeSrc);
+    return prog;
+}
+
+Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc) {
+    sgl::Shader prog;
+    sgl::compileShader(prog, vertSrc, fragSrc);
+    return prog;
+}
+
+Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc) {
+    sgl::Shader prog;
+    sgl::compileShader(prog, vertSrc, fragSrc, geomSrc);
+    return prog;
+}
+
+void sgl::compileShader (sgl::Shader& prog, const std::string& computeSrc) {
+    auto stage = resource_guard(compileShaderStage<GL_COMPUTE_SHADER>(computeSrc));
+    linkShaderStages(prog, stage.get());
+}
+
+void sgl::compileShader (sgl::Shader& prog, const std::string& vertSrc, const std::string& fragSrc) {
+    auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
+    auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
+    linkShaderStages(prog, vs.get(),fs.get());
+}
+
+void sgl::compileShader (sgl::Shader& prog, const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc) {
+    auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
+    auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
+    auto gs = resource_guard(compileShaderStage<GL_GEOMETRY_SHADER>(geomSrc));
+    linkShaderStages(prog, vs.get(),fs.get(),gs.get());
+}
+
 Shader sgl::loadShader (const std::string& computePath) {
-    auto stage = resource_guard(loadShaderStage<GL_COMPUTE_SHADER>(computePath));
-    Shader shader;
-    linkShaderStages(shader, stage.get());
-    return shader;
+    sgl::Shader prog;
+    sgl::loadShader(prog,computePath);
+    return prog;
 }
 
 Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath) {
-    auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
-    auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
     Shader shader;
-    linkShaderStages(shader, vs.get(), fs.get());
+    sgl::loadShader(shader, vertPath, fragPath);
     return shader;
 }
 
 Shader sgl::loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath) {
+    Shader shader;
+    sgl::loadShader(shader, vertPath, fragPath, geomPath);
+    return shader;
+}
+
+void sgl::loadShader (sgl::Shader& prog, const std::string& computePath) {
+    auto stage = resource_guard(loadShaderStage<GL_COMPUTE_SHADER>(computePath));
+    linkShaderStages(prog, stage.get());
+}
+
+void sgl::loadShader (sgl::Shader& prog, const std::string& vertPath, const std::string& fragPath) {
+    auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
+    auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
+    linkShaderStages(prog, vs.get(), fs.get());
+}
+
+void sgl::loadShader (sgl::Shader& prog, const std::string& vertPath, const std::string& fragPath, const std::string& geomPath) {
     auto vs = resource_guard(loadShaderStage<GL_VERTEX_SHADER>(vertPath));
     auto fs = resource_guard(loadShaderStage<GL_FRAGMENT_SHADER>(fragPath));
     auto gs = resource_guard(loadShaderStage<GL_GEOMETRY_SHADER>(geomPath));
-    Shader shader;
-    linkShaderStages(shader, vs.get(),fs.get(),gs.get());
-    return shader;
+    linkShaderStages(prog, vs.get(),fs.get(),gs.get());
 }
 
-Shader sgl::compileShader (const std::string& computeSrc) {
-    auto stage = resource_guard(compileShaderStage<GL_COMPUTE_SHADER>(computeSrc));
-    Shader shader;
-    linkShaderStages(shader, stage.get());
-    return shader;
-}
-
-Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc) {
-    auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
-    auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
-    Shader shader;
-    linkShaderStages(shader, vs.get(),fs.get());
-    return shader;
-}
-
-Shader sgl::compileShader (const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc) {
-    auto vs = resource_guard(compileShaderStage<GL_VERTEX_SHADER>(vertSrc));
-    auto fs = resource_guard(compileShaderStage<GL_FRAGMENT_SHADER>(fragSrc));
-    auto gs = resource_guard(compileShaderStage<GL_GEOMETRY_SHADER>(geomSrc));
-    Shader shader;
-    linkShaderStages(shader, vs.get(),fs.get(),gs.get());
-    return shader;
-}
 
 GLint Shader::getLocation (const char * id) {
     GLint loc = glGetUniformLocation(_id, id);
     if (loc == -1) return loc;
     return loc;
 }
-
 
 GLint Shader::setUniformMatrix4f (std::string& id, float * matrix){
     int loc = glGetUniformLocation(_id, id.c_str());
@@ -68,6 +93,20 @@ GLint Shader::setUniformMatrix4f (const char * id, float * matrix){
     int loc = glGetUniformLocation(_id, id);
     if (loc == -1) return loc;
     glUniformMatrix4fv(loc, 1, false, matrix);
+    return loc;
+}
+
+GLint Shader::setUniformMatrix3f (std::string& id, float * matrix){
+    int loc = glGetUniformLocation(_id, id.c_str());
+    if (loc == -1) return loc;
+    glUniformMatrix3fv(loc, 1, false, matrix);
+    return loc;
+}
+
+GLint Shader::setUniformMatrix3f (const char * id, float * matrix){
+    int loc = glGetUniformLocation(_id, id);
+    if (loc == -1) return loc;
+    glUniformMatrix3fv(loc, 1, false, matrix);
     return loc;
 }
 

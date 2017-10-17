@@ -40,7 +40,7 @@ namespace detail {
         int width;
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w) : width(w), GLTextureInfoBase() {}
-        GLTextureInfo (int w, GLTextureInfoBase& info) : width(w), GLTextureInfoBase(info) {}
+        GLTextureInfo (int w, const GLTextureInfoBase& info) : width(w), GLTextureInfoBase(info) {}
         size_t size () const { return width * sgl::traits::formatSize(iformat); }
     };
 
@@ -49,7 +49,7 @@ namespace detail {
         int width, height;
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w, int h) : width(w), height(h), GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, GLTextureInfoBase& info) : width(w), height(h), GLTextureInfoBase(info) {}
+        GLTextureInfo (int w, int h, const GLTextureInfoBase& info) : width(w), height(h), GLTextureInfoBase(info) {}
         size_t size () const { return width * height * sgl::traits::formatSize(iformat); }
     };
 
@@ -58,7 +58,7 @@ namespace detail {
         int width, height, length;
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w, int h, int length) : width(w), height(h), length(length), GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, int length, GLTextureInfoBase& info) : width(w), height(h), length(length), GLTextureInfoBase(info) {}
+        GLTextureInfo (int w, int h, int length, const GLTextureInfoBase& info) : width(w), height(h), length(length), GLTextureInfoBase(info) {}
         size_t size () const { return width * height * sgl::traits::formatSize(iformat); }
     };
 
@@ -67,7 +67,7 @@ namespace detail {
         int width, height, depth;
         GLTextureInfo () : GLTextureInfoBase() {}
         GLTextureInfo (int w, int h, int d) : width(w), height(h), depth(d), GLTextureInfoBase() {}
-        GLTextureInfo (int w, int h, int d, GLTextureInfoBase& info) : width(w), height(h), depth(d), GLTextureInfoBase(info) {}
+        GLTextureInfo (int w, int h, int d, const GLTextureInfoBase& info) : width(w), height(h), depth(d), GLTextureInfoBase(info) {}
         size_t size () const { return width * height * depth * sgl::traits::formatSize(iformat); }
     };
 

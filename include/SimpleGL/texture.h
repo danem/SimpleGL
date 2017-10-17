@@ -152,12 +152,17 @@ namespace detail {
 
 } // end namespace
 
-using TextureLoader = const unsigned char * (const char * path, int * width, int * height, int * channels, int);
-using TextureFreer  = void (const unsigned char *);
+using TextureLoader = unsigned char * (*)(const char * path, int * width, int * height, int * channels, int);
+using TextureFreer  = void (*)(void *);
 
 struct TextureAccessor {
     TextureLoader loader;
     TextureFreer freer;
+
+    TextureAccessor (TextureLoader loader, TextureFreer freer) :
+        loader(loader),
+        freer(freer)
+    {}
 };
 
 
@@ -258,7 +263,7 @@ public:
     TextureBuilder<kind>& wrap (int s, int t, int r) = delete;
     TextureBuilder<kind>& wrap (int s, int t) = delete;
 
-    Texture<kind> build (size_t width) {
+    Texture<kind> build (size_t width) const {
         detail::GLTextureInfo<kind> info(width, this->_info);
         return {info};
     }
@@ -274,21 +279,25 @@ public:
     using detail::TextureBuilderBase<TextureBuilder<kind>>::wrap;
     TextureBuilder<kind>& wrap (int s, int t, int r) = delete;
 
-    Texture<kind> build (size_t width, size_t height) {
+    Texture<kind> build (size_t width, size_t height) const {
         detail::GLTextureInfo<kind> info(width, height, this->_info);
         return {info};
     }
 
-    Texture<kind> build (const char * imagename, TextureLoader loader, TextureFreer freer) {
+    Texture<kind> build (const char * imagename, TextureAccessor& accessor) const {
+        return build(imagename, accessor.loader, accessor.freer);
+    }
+
+    Texture<kind> build (const char * imagename, TextureLoader loader, TextureFreer freer) const {
         int width, height, channels;
-        const unsigned char* data = loader(imagename, &width, &height, &channels, 0);
+        unsigned char* data = loader(imagename, &width, &height, &channels, 0);
         detail::GLTextureInfo<kind> info(width, height, this->_info);
         Texture<kind> tex(data,info);
-        freer(data);
+        freer(static_cast<void*>(data));
         return tex;
     }
 
-    Texture<kind> build (uint8_t * data, size_t width, size_t height) {
+    Texture<kind> build (uint8_t * data, size_t width, size_t height) const {
         detail::GLTextureInfo<kind> info(width, height, this->_info);
         Texture<kind> tex(data,info);
         return tex;
@@ -304,7 +313,7 @@ public:
 
     using detail::TextureBuilderBase<TextureBuilder<kind>>::wrap;
 
-    Texture<kind> build (size_t width, size_t height, size_t depth) {
+    Texture<kind> build (size_t width, size_t height, size_t depth) const {
         detail::GLTextureInfo<kind> info(width, height, depth, this->_info);
         return {info};
     }
@@ -351,9 +360,9 @@ public:
     TextureCubeMap build (TextureAccessor& loader, const char** paths, size_t len){
         for (size_t i = 0; i < len; i++){
             int w, h, c;
-            const unsigned char * data = loader.loader(paths[i], &w, &h, &c, 0);
+            unsigned char * data = loader.loader(paths[i], &w, &h, &c, 0);
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, _info.iformat, w, h, 0, _info.format, _info.data_type, data);
-            loader.freer(data);
+            loader.freer(static_cast<void*>(data));
         }
         _result.unbind();
         return _result;

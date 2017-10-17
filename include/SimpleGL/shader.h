@@ -44,10 +44,10 @@ ShaderStage<kind> compileShaderStage (const char ** source, size_t len, const st
         GLsizei len = 0;
         glGetShaderInfoLog(shader, 200, &len, msgbuf);
         GLenum err = glGetError();
-        //std::stringstream errMsg;
-        sglCatchGLError();
-        //errMsg << "Got error code " << err << " while compiling: " << path << " \n" << msgbuf;
-        //throw std::runtime_error(errMsg.str());
+        std::stringstream errMsg;
+        errMsg << "Got error code " << err << " while compiling: " << path << " \n" << msgbuf;
+        //sglCatchGLError();
+        throw std::runtime_error(errMsg.str());
     }
     return shader;
 }
@@ -151,13 +151,17 @@ public:
     {}
 
     GLint setUniformMatrix4f (std::string& id, float * matrix);
+    GLint setUniformMatrix3f (std::string& id, float * matrix);
     GLint setUniformMatrix2f (std::string& id, float * matrix);
+
+    GLint setUniformMatrix4f (const char * id, float * matrix);
+    GLint setUniformMatrix3f (const char * id, float * matrix);
+    GLint setUniformMatrix2f (const char * id, float * matrix);
+
     GLint setUniform2fv (std::string& id, float * vec);
     GLint setUniform3fv (std::string& id, float * vec);
     GLint setUniform4fv (std::string& id, float * vec);
 
-    GLint setUniformMatrix4f (const char * id, float * matrix);
-    GLint setUniformMatrix2f (const char * id, float * matrix);
 
     GLint setUniform2fv (const char * id, float * vec);
     GLint setUniform2fv (const char * id, float x, float y);
@@ -231,9 +235,18 @@ void linkShaderStages (Shader& shader, T& stage) {
 }
 
 // Dead simple interface
+
+void loadShader (sgl::Shader& prog, const std::string& computePath);
+void loadShader (sgl::Shader& prog, const std::string& vertPath, const std::string& fragPath);
+void loadShader (sgl::Shader& prog, const std::string& vertPath, const std::string& fragPath, const std::string& geomPath);
+
 Shader loadShader (const std::string& computePath);
 Shader loadShader (const std::string& vertPath, const std::string& fragPath);
 Shader loadShader (const std::string& vertPath, const std::string& fragPath, const std::string& geomPath);
+
+void compileShader (sgl::Shader& prog, const std::string& computeSrc);
+void compileShader (sgl::Shader& prog, const std::string& vertSrc, const std::string& fragSrc);
+void compileShader (sgl::Shader& prog, const std::string& vertSrc, const std::string& fragSrc, const std::string& geomSrc);
 
 Shader compileShader (const std::string& computeSrc);
 Shader compileShader (const std::string& vertSrc, const std::string& fragSrc);

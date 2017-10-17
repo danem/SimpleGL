@@ -9,6 +9,7 @@ set(SHADER_FILES
     ./data/dejong_fs.glsl
     ./data/dejong_vs.glsl
     ./data/fluid_fs.glsl
+    ./data/fluid2_fs.glsl
     ./data/fs.glsl
     ./data/game-of-life_fs.glsl
     ./data/ident_vs.glsl
@@ -50,6 +51,7 @@ test_target(shader-test      shader-test.cc)
 test_target(size-test        size-test.cc)
 test_target(ubo-test         ubo-test.cc)
 test_target(fluid-test       fluid-test.cc)
+test_target(fluid2-test      fluid2-test.cc)
 test_target(texture-test     texture-test.cc)
 test_target(vertex-test      vertex-test.cc)
 test_target(traits-test      traits-test.cc)

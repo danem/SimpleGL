@@ -15,6 +15,7 @@ struct Surface {
         texture(texture)
     {
         fbo.attachTexture(texture);
+        fbo.unbind();
     }
 
     void release () {
@@ -72,6 +73,7 @@ public:
 
 using Surface2D = Surface<GL_TEXTURE_2D>;
 using Slab2D    = Slab<GL_TEXTURE_2D>;
+
 
 } // end namespace
 

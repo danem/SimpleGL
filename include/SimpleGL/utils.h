@@ -104,12 +104,17 @@ static inline void __sglDebugMessageCallback(GLenum source, GLenum type, GLuint 
 }
 
 static void initializeDebugging (const DebugConfig& config) {
-    for (const auto& l : config.levels) {
-        glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
+    if (SGL_DEBUGLOG_SUPPORTED) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        for (const auto& l : config.levels) {
+            glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
+        }
+    } else {
+        printf("Warning: OpenGL debug log not supported\n");
     }
 }
 #endif
-
 } // end namespace
 } // end namespace
 
@@ -130,8 +135,8 @@ static void initializeDebugging (const DebugConfig& config) {
    } while (0);
 
 #define sglClearGLError() glGetError();
-#define sglCatchGLError() sglGetGLError(false);
-#define sglCheckGLError() sglGetGLError(true);
+#define sglCatchGLError() sglGetGLError(0);
+#define sglCheckGLError() sglGetGLError(1);
 
 #if SGL_DEBUG >= 1
 #    define sglDbgLog(...) sglDbgPrint(__VA_ARGS__)
