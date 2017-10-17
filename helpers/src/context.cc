@@ -94,7 +94,7 @@ void Context::initialize () {
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLBOOL(attrs.doubleBuffer));
     glfwWindowHint(GLFW_FLOATING, GLBOOL(attrs.onTop));
     glfwWindowHint(GLFW_VISIBLE, GLBOOL(attrs.windowVisible));
-    //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLBOOL(attrs.debug));
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLBOOL(attrs.debug));
 
     _windowState = glfwCreateWindow(attrs.width, attrs.height, attrs.title.c_str(), nullptr, nullptr);    
     if (_windowState == nullptr) throw std::runtime_error("Failed to create GLFW window");

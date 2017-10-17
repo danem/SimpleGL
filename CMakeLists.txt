@@ -79,7 +79,7 @@ set(EXTERN_INCLUDES ${EPOXY_INCLUDE_DIR})
 add_definitions(${DEFINITIONS})
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${INCLUDE_FILES} ${OTHER_FILES})
 target_link_libraries(${PROJECT_NAME} ${EXTERN_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR} ${EXTERN_INCLUDES})
 
 if (${SGL_COMPILE_HELPERS})
     if(${SGL_USE_ANDROID})

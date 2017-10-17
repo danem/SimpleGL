@@ -110,8 +110,8 @@ int main () {
         state.continueSim = true;
 
         for (int i = 0; i < 300*100; i++) {
-            int x = randomFloat(width,0);
-            int y = randomFloat(height,0);
+            int x = randomFloat(width-1,0);
+            int y = randomFloat(height-1,0);
             texData[(y * width + x) * 3] = 255;
         }
 

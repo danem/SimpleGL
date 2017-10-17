@@ -107,6 +107,7 @@ static void initializeDebugging (const DebugConfig& config) {
     if (SGL_DEBUGLOG_SUPPORTED) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(__sglDebugMessageCallback, nullptr);
         for (const auto& l : config.levels) {
             glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
         }

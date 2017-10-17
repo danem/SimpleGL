@@ -82,7 +82,7 @@ void CameraController::onDrag (const sgl::DragEvent& event) {
 
 void CameraController::onScroll(double sx, double sy) {
     glm::vec3 look = _camera.looking - _camera.position;
-    _camera.position += look * sy;
+    _camera.position += look * static_cast<float>(sy);
     _camera.update();
 }
 
