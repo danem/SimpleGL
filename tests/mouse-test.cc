@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/type_trait.hpp>
-#include <glm/detail/precision.hpp>
+//#include <glm/detail/precision.hpp>
 
 #include <iostream>
 #include <type_traits>
@@ -11,17 +11,17 @@
 class MouseDragger : public sgl::MouseDraggerBase {
 public:
 
-    sgl::Param<glm::vec2> mp;
+    //sgl::Param<glm::vec2> mp;
 
     MouseDragger () :
-        sgl::MouseDraggerBase(),
-        mp("mouse", sgl::VecPrinter)
+        sgl::MouseDraggerBase()
+        //mp("mouse", sgl::VecPrinter)
     {}
 
     void onDragStart () override {}
     void onDragEnd () override {}
     void onDrag (const sgl::DragEvent& event) override {
-        mp.set({event.mx,event.my});
+        //mp.set({event.mx,event.my});
     }
 
     void onScroll (double sx, double sy) override {}
