@@ -69,6 +69,7 @@ const DebugConfig SGL_DEBUG_ERRORS {
 static inline void __sglDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                             GLsizei length, const GLchar* message, const void* userParam) {
     Formatter msg;
+    int (*logger)(const char*) = reinterpret_cast<int(*)(const char*)>(userParam);
 
     switch (severity) {
     case GL_DEBUG_SEVERITY_HIGH:         msg << "ERROR: "; break;
@@ -100,20 +101,28 @@ static inline void __sglDebugMessageCallback(GLenum source, GLenum type, GLuint 
     }
 
     msg << "id: " << id << " message: " << message;
-    std::cout << msg.str() << std::endl;
+    logger(msg.str().c_str());
 }
 
-static void initializeDebugging (const DebugConfig& config) {
+static void initializeDebugging (const DebugConfig& config, int (*logger)(const char*) = nullptr) {
+    if (logger == nullptr) logger = puts;
     if (SGL_DEBUGLOG_SUPPORTED) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(__sglDebugMessageCallback, nullptr);
+        glDebugMessageCallback(__sglDebugMessageCallback, logger);
         for (const auto& l : config.levels) {
             glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
         }
+        logger("SGL Debug Logging Initialized\n");
     } else {
-        printf("Warning: OpenGL debug log not supported\n");
+        logger("Warning: OpenGL debug log not supported\n");
     }
+}
+
+static void disableDebugging () {
+    glDisable(GL_DEBUG_OUTPUT);
+    glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(nullptr,nullptr);
 }
 #endif
 } // end namespace
