@@ -6,4 +6,5 @@
 * Figure out an interface for generating and updating textures / renderbuffers
 * Rework GLBuffer API. Also consider storing buffer size along with the resource itself
 * Reconsider GLResource creation. Allocating a GLuint handle in the constructor can make it easy to accidentally leak resources.
+* Improve window handling. Need to decouple Window from sgl::Context.
 

@@ -1,4 +1,4 @@
-#include <SimpleGL/helpers/context.h>
+#include "../include/SimpleGL/helpers/context.h"
 #include <SimpleGL/utils.h>
 #include <stdexcept>
 #include <iostream>
@@ -75,6 +75,8 @@ void detail::getDefaultWindowConfig(detail::ContextConfig& config, int width, in
     config.height = height;
     config.title = title;
     config.debug = false;
+    config.fullscreen = false;
+    config.monitor = 0;
 }
 
 void Context::initialize () {
@@ -96,7 +98,9 @@ void Context::initialize () {
     glfwWindowHint(GLFW_VISIBLE, GLBOOL(attrs.windowVisible));
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLBOOL(attrs.debug));
 
-    _windowState = glfwCreateWindow(attrs.width, attrs.height, attrs.title.c_str(), nullptr, nullptr);    
+    GLFWmonitor * monitor = nullptr;
+    if (attrs.fullscreen) monitor = glfwGetPrimaryMonitor();
+    _windowState = glfwCreateWindow(attrs.width, attrs.height, attrs.title.c_str(), monitor, nullptr);
     if (_windowState == nullptr) throw std::runtime_error("Failed to create GLFW window");
 
     glfwMakeContextCurrent(_windowState);

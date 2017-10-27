@@ -50,10 +50,10 @@
 
 namespace sgl {
 namespace config {
-    inline bool sglOpenglVersion (int major, int minor);
+    bool sglOpenglVersion (int major, int minor);
 } // end namespace
 
-inline void sglInitialize (int major, int minor);
+void sglInitialize (int major, int minor);
 
 } // namespace
 

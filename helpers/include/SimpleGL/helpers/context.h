@@ -38,6 +38,8 @@ namespace detail {
         bool forwardCompat;
         bool windowVisible;
         bool debug;
+        bool fullscreen;
+        int monitor;
     };
 
     void getDefaultWindowConfig (ContextConfig& dest, int width = 0, int height = 0, const std::string& title = "", int major = SGL_OPENGL_MAX_MAJOR, int minor = SGL_OPENGL_MAX_MINOR);
@@ -70,7 +72,6 @@ public:
     ~Context () {
         destroy();
     }
-
 
     void destroy ();
 
@@ -172,9 +173,15 @@ public:
         return *this;
     }
 
+    ContextBuilder& setFullscreen (bool enabled) {
+        _config.fullscreen = enabled;
+        return *this;
+    }
+
     Context build () {
         return {_config};
     }
+
 };
 
 

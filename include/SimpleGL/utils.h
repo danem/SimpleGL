@@ -41,6 +41,11 @@ struct DebugConfigLevel {
     GLenum severity;
 };
 
+struct Foo {
+    std::vector<int> fs;
+    Foo () {}
+};
+
 struct DebugConfig {
     std::vector<DebugConfigLevel> levels;
 
@@ -69,7 +74,7 @@ const DebugConfig SGL_DEBUG_ERRORS {
 static inline void __sglDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                             GLsizei length, const GLchar* message, const void* userParam) {
     Formatter msg;
-    int (*logger)(const char*) = reinterpret_cast<int(*)(const char*)>(userParam);
+    int (*logger)(const char*) = reinterpret_cast<int(*)(const char*)>(const_cast<void*>(userParam));
 
     switch (severity) {
     case GL_DEBUG_SEVERITY_HIGH:         msg << "ERROR: "; break;
@@ -109,7 +114,7 @@ static void initializeDebugging (const DebugConfig& config, int (*logger)(const 
     if (SGL_DEBUGLOG_SUPPORTED) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(__sglDebugMessageCallback, logger);
+        glDebugMessageCallback(__sglDebugMessageCallback, (const void*)logger);
         for (const auto& l : config.levels) {
             glDebugMessageControl(l.source, l.type, l.severity, 0, NULL, GL_TRUE);
         }

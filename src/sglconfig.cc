@@ -10,11 +10,11 @@ struct SGL_OPENGL_STATE {
 
 static SGL_OPENGL_STATE __sglOpenGLState__;
 
-inline bool sgl::config::sglOpenglVersion (int major, int minor) {
+bool sgl::config::sglOpenglVersion (int major, int minor) {
     return __sglOpenGLState__.version_major >= major && __sglOpenGLState__.version_minor >= minor;
 }
 
-inline void sgl::sglInitialize (int major, int minor) {
+void sgl::sglInitialize (int major, int minor) {
     __sglOpenGLState__.version_major = major;
     __sglOpenGLState__.version_minor = minor;
 #if SGL_DEBUG >= 1
