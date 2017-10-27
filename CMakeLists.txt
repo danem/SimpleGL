@@ -51,6 +51,7 @@ set(INCLUDE_FILES
 )
 
 set(SOURCE_FILES
+    ${SOURCE_DIR}/sglconfig.cc
     ${SOURCE_DIR}/shader.cc
     ${SOURCE_DIR}/traits.cc
     ${SOURCE_DIR}/utils.cc

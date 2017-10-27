@@ -50,25 +50,10 @@
 
 namespace sgl {
 namespace config {
-    struct SGL_OPENGL_STATE {
-        int version_major = SGL_OPENGL_MAX_MAJOR;
-        int version_minor = SGL_OPENGL_MAX_MINOR;
-    };
-
-    static SGL_OPENGL_STATE __sglOpenGLState__;
-
-    inline bool sglOpenglVersion (int major, int minor) {
-        return __sglOpenGLState__.version_major >= major && __sglOpenGLState__.version_minor == minor;
-    }
+    inline bool sglOpenglVersion (int major, int minor);
 } // end namespace
 
-inline void sglInitialize (int major, int minor) {
-    config::__sglOpenGLState__.version_major = major;
-    config::__sglOpenGLState__.version_minor = minor;
-#if SGL_DEBUG >= 1
-    printf("SGL OpenGL Version %d.%d\n", major, minor);
-#endif
-}
+inline void sglInitialize (int major, int minor);
 
 } // namespace
 
