@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <sstream>
 
 namespace sgl {
 
@@ -19,16 +20,9 @@ struct MeshData {
 public:
     std::vector<GLuint> indices;
     std::vector<MeshVertex> vertices;
+    void toObj (std::stringstream& sstream) const;
 };
 
-class MeshBuilder {
-public:
-    MeshData data;
-
-    void addVertex (const MeshVertex& vertex);
-    void addFace (int a, int b, int c);
-    int vertexCount () const;
-};
 
 class MeshResource : public GLResource<GL_VERTEX_ARRAY>{
 private:
@@ -48,6 +42,18 @@ public:
     }
 
 };
+
+class MeshBuilder {
+public:
+    MeshData data;
+
+    void addVertex (const MeshVertex& vertex);
+    void addFace (int a, int b, int c);
+    int vertexCount () const;
+
+    MeshResource build ();
+};
+
 
 //using MMeshResource = GLResourceM<MeshResource>;
 

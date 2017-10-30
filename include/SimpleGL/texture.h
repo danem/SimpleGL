@@ -284,7 +284,7 @@ public:
         return {info};
     }
 
-    Texture<kind> build (const char * imagename, TextureAccessor& accessor) const {
+    Texture<kind> build (const char * imagename, const TextureAccessor& accessor) const {
         return build(imagename, accessor.loader, accessor.freer);
     }
 

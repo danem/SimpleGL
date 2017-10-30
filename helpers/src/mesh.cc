@@ -1,19 +1,52 @@
-#include <SimpleGL/helpers/mesh.h>
+#include "../include/SimpleGL/helpers/mesh.h"
 
 using namespace sgl;
 
+
+void MeshData::toObj (std::stringstream& sstream) const {
+    std::stringstream verts;
+    std::stringstream uvs;
+    std::stringstream norms;
+
+    for (const auto& vert : vertices) {
+        verts << "v "  << vert.position.x << " " << vert.position.y << " " << vert.position.z << "\n";
+        uvs   << "vt " << vert.uvcoord.x  << " " << vert.uvcoord.y << "\n";
+        norms << "vn " << vert.normal.x   << " " << vert.normal.y << " " << vert.normal.z << "\n";
+    }
+
+    sstream << verts.str() << "\n"
+            << uvs.str() << "\n"
+            << norms.str() << "\n";
+
+    for (size_t i = 0; i < indices.size(); i+=3) {
+        sstream << "f "
+                << indices[i] + 1 << " "
+                << indices[i+1] + 1 << " "
+                << indices[i+2] + 1 << "\n";
+                   /*
+                << indices[i] << "/" << indices[i] << "/" << indices[i] << " "
+                << indices[i+1] << "/" << indices[i+1] << "/" << indices[i+1] << " "
+                << indices[i+2] << "/" << indices[i+2] << "/" << indices[i+2] << "\n";
+                           */
+    }
+}
+
 void MeshBuilder::addVertex (const MeshVertex& vertex) {
-    data.vertices.emplace_back(vertex);
+    data.vertices.push_back(vertex);
 }
 
 void MeshBuilder::addFace (int a, int b, int c) {
-    data.indices.emplace_back(a);
-    data.indices.emplace_back(b);
-    data.indices.emplace_back(c);
+    data.indices.push_back(a);
+    data.indices.push_back(b);
+    data.indices.push_back(c);
 }
 
 int MeshBuilder::vertexCount () const {
     return data.indices.size();
+}
+
+MeshResource MeshBuilder::build () {
+    return {data};
 }
 
 MeshResource::MeshResource (MeshData& data) :
