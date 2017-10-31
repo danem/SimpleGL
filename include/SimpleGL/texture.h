@@ -284,13 +284,16 @@ public:
         return {info};
     }
 
-    Texture<kind> build (const char * imagename, const TextureAccessor& accessor) const {
+    Texture<kind> build (const char * imagename, const TextureAccessor& accessor) {
         return build(imagename, accessor.loader, accessor.freer);
     }
 
-    Texture<kind> build (const char * imagename, TextureLoader loader, TextureFreer freer) const {
+    Texture<kind> build (const char * imagename, TextureLoader loader, TextureFreer freer) {
         int width, height, channels;
+        GLuint formats[] = {GL_R, GL_RG, GL_RGB, GL_RGBA};
         unsigned char* data = loader(imagename, &width, &height, &channels, 0);
+        this->_info.format = formats[channels-1];
+        this->_info.iformat = formats[channels-1];
         detail::GLTextureInfo<kind> info(width, height, this->_info);
         Texture<kind> tex(data,info);
         freer(static_cast<void*>(data));
