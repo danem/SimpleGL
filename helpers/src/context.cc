@@ -98,8 +98,13 @@ void Context::initialize () {
     glfwWindowHint(GLFW_VISIBLE, GLBOOL(attrs.windowVisible));
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLBOOL(attrs.debug));
 
+    int monitorCount;
+    GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+    if (attrs.monitor > monitorCount) attrs.monitor = monitorCount - 1;
+
     GLFWmonitor * monitor = nullptr;
-    if (attrs.fullscreen) monitor = glfwGetPrimaryMonitor();
+    if (attrs.monitor != 0) monitor = monitors[attrs.monitor];
+
     _windowState = glfwCreateWindow(attrs.width, attrs.height, attrs.title.c_str(), monitor, nullptr);
     if (_windowState == nullptr) throw std::runtime_error("Failed to create GLFW window");
 

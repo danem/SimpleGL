@@ -39,7 +39,7 @@ namespace detail {
         bool windowVisible;
         bool debug;
         bool fullscreen;
-        int monitor;
+        size_t monitor;
     };
 
     void getDefaultWindowConfig (ContextConfig& dest, int width = 0, int height = 0, const std::string& title = "", int major = SGL_OPENGL_MAX_MAJOR, int minor = SGL_OPENGL_MAX_MINOR);
@@ -175,6 +175,11 @@ public:
 
     ContextBuilder& setFullscreen (bool enabled) {
         _config.fullscreen = enabled;
+        return *this;
+    }
+
+    ContextBuilder& setMonitor (size_t idx) {
+        _config.monitor = idx;
         return *this;
     }
 
