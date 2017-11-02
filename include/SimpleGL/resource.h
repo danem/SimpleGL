@@ -299,6 +299,7 @@ public:
     }
 
     void release () {
+        if (ids == nullptr) return;
         sgl::destroy<kind>(size,ids);
         delete ids; // TODO: Because the user can wrap their own ptr, this might not be a good idea...
         ids = nullptr;
