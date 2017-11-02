@@ -281,11 +281,6 @@ public:
         sgl::create<kind>(size,ids);
     }
 
-    ~GLResourceArray () {
-        if (ids == nullptr) return;
-        release();
-    }
-
     GLResource<kind> operator[] (size_t idx) {
         return ids[idx];
     }
@@ -301,7 +296,7 @@ public:
     void release () {
         if (ids == nullptr) return;
         sgl::destroy<kind>(size,ids);
-        delete ids; // TODO: Because the user can wrap their own ptr, this might not be a good idea...
+        //delete ids; // TODO: Because the user can wrap their own ptr, this might not be a good idea...
         ids = nullptr;
     }
 };
