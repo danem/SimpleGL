@@ -33,7 +33,7 @@ public:
         sglDbgCatchGLError();
     }
 
-    ~PBOUploader () {
+    void release () {
         _pbos.release();
     }
 
