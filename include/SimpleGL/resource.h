@@ -282,6 +282,7 @@ public:
     }
 
     ~GLResourceArray () {
+        if (ids == nullptr) return;
         release();
     }
 
