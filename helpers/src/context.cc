@@ -177,6 +177,10 @@ void Context::swapBuffers () {
     glfwSwapBuffers(_windowState);
 }
 
+void Context::setCurrent() {
+    glfwMakeContextCurrent(_windowState);
+}
+
 bool Context::isAlive () {
     return !glfwWindowShouldClose(_windowState);
 }

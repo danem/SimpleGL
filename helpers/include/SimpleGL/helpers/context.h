@@ -77,6 +77,7 @@ public:
 
     void pollEvents ();
     void swapBuffers ();
+    void setCurrent ();
 
     void setTitle (const std::string& title);
     void setWindowVisible (bool visible);

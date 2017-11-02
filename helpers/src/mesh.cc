@@ -20,13 +20,13 @@ void MeshData::toObj (std::stringstream& sstream) const {
 
     for (size_t i = 0; i < indices.size(); i+=3) {
         sstream << "f "
-                << indices[i] + 1 << " "
-                << indices[i+1] + 1 << " "
-                << indices[i+2] + 1 << "\n";
-                   /*
                 << indices[i] << "/" << indices[i] << "/" << indices[i] << " "
                 << indices[i+1] << "/" << indices[i+1] << "/" << indices[i+1] << " "
                 << indices[i+2] << "/" << indices[i+2] << "/" << indices[i+2] << "\n";
+                   /*
+                << indices[i] + 1 << " "
+                << indices[i+1] + 1 << " "
+                << indices[i+2] + 1 << "\n";
                            */
     }
 }

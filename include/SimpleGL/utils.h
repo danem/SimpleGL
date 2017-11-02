@@ -58,7 +58,6 @@ struct DebugConfig {
     }
 };
 
-#if SGL_DEBUG > 0
 const DebugConfig SGL_DEBUG_MAX_VERBOSE{{GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE}};
 const DebugConfig SGL_DEBUG_VERBOSE{
     {GL_DEBUG_SOURCE_API, GL_DONT_CARE, GL_DONT_CARE},
@@ -129,7 +128,6 @@ static void disableDebugging () {
     glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(nullptr,nullptr);
 }
-#endif
 } // end namespace
 } // end namespace
 
