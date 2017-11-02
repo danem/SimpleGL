@@ -10,7 +10,7 @@ namespace sgl {
 // TODO: this is not generalized enough
 class PBOUploader {
 private:
-    sgl::Texture2D& _destTexture;
+    sgl::Texture2D _destTexture;
     sgl::GLResourceArray<GL_PIXEL_UNPACK_BUFFER> _pbos;
     size_t _delay;
     size_t _pboIdx;
@@ -19,7 +19,7 @@ private:
 
 public:
 
-    PBOUploader (sgl::Texture2D& texture, size_t delay = 2) :
+    PBOUploader (sgl::Texture2D texture, size_t delay = 2) :
         _destTexture(texture),
         _pbos(delay),
         _delay(delay),
