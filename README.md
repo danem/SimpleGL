@@ -25,7 +25,7 @@ buffer.release();                         //
                                           // All SGL Types are just variations on GLResource.
                                           //
 sgl::ArrayBuffer<float> buffer2{data};    // GLuint bufs[2];
-sgl::ArrayBuffer<int> buffer3(data2);     // glGenBuffers(2, bufs);
+sgl::ArrayBuffer<int> buffer3{data2};     // glGenBuffers(2, bufs);
                                           // glBindBuffer(GL_ARRAY_BUFFER, bufs[0]);
                                           // glBufferStorage(GL_ARRAY_BUFFER, sizeof(float)*data.size(), data.data(), GL_MAP_READ_BIT);
                                           // glBindBuffer(GL_ARRAY_BUFFER, bufs[1]);
