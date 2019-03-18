@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 project(SimpleGLHelpers CXX)
 
+include(GNUInstallDirs)
+
 find_package(GLFW REQUIRED)
 find_package(GLM REQUIRED)
 
@@ -37,14 +39,32 @@ set(EXTERN_INCLUDES
     ${EXTERN_INCLUDES}
     ${GLFW_INCLUDE_DIR}
     ${GLM_INCLUDE_DIR}
-    SimpleLG)
+    )
 
 add_library(SimpleGLHelpers ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(SimpleGLHelpers PUBLIC ${EXTERN_LIBRARIES})
-target_include_directories(SimpleGLHelpers PUBLIC ${EXTERN_INCLUDES} ${INCLUDE_DIR})
+target_include_directories(SimpleGLHelpers PUBLIC 
+    ${EXTERN_INCLUDES} 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
+install(TARGETS SimpleGLHelpers  
+    EXPORT SimpleGLHelpersConfig
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
-install(TARGETS SimpleGLHelpers  ARCHIVE DESTINATION lib)
+export(TARGETS SimpleGLHelpers
+    NAMESPACE SimpleGLHelpers::
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/SimpleGLHelpersConfig.cmake"
+)
+
+install(EXPORT SimpleGLHelpersConfig
+    FILE SimpleGLHelpersConfig.cmake
+    NAMESPACE SimpleGLHelpers::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SimpleGLHelpers
+)
+
 install(DIRECTORY ${INCLUDE_DIR}/SimpleGL/helpers DESTINATION include/SimpleGL)
 
 if (WIN32)

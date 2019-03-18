@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
+include(GNUInstallDirs)
 
 set(SGL_USE_ANDROID OFF CACHE BOOL "Build for android")
 set(SGL_USE_GLES OFF CACHE BOOL "Enabled GLES")
@@ -79,8 +80,12 @@ set(EXTERN_INCLUDES ${EPOXY_INCLUDE_DIR})
 
 add_definitions(${DEFINITIONS})
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${INCLUDE_FILES} ${OTHER_FILES})
-target_link_libraries(${PROJECT_NAME} ${EXTERN_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR} ${EXTERN_INCLUDES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${EXTERN_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PUBLIC  
+    ${EXTERN_INCLUDES}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 if (${SGL_COMPILE_HELPERS})
     if(${SGL_USE_ANDROID})
@@ -100,8 +105,29 @@ if(${SGL_COMPILE_BENCHMARKS})
     add_subdirectory("./benchmarks")
 endif()
 
-install(TARGETS SimpleGL ARCHIVE DESTINATION lib)
-install(DIRECTORY ${INCLUDE_DIR}/SimpleGL DESTINATION include)
+
+install(TARGETS SimpleGL
+    EXPORT SimpleGLConfig
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+export(TARGETS SimpleGL
+    NAMESPACE SimpleGL::
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/SimpleGLConfig.cmake"
+)
+
+install(EXPORT SimpleGLConfig
+    FILE SimpleGLConfig.cmake
+    NAMESPACE SimpleGL::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SimpleGL
+)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/SimpleGL"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
+
 
 if (WIN32)
     add_custom_target(install_SimpleGL
