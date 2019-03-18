@@ -6,7 +6,8 @@ OpenGL has to offer. SimpleGL can be seamlessly integrated into existing OpenGL 
 or used with other OpenGL libraries and frameworks.
 
 ```c++
-std::vector<float> data(1000);            //
+std::vector<float> data(1000);
+std::vector<int> data2(1000);             //
 std::iota(data.begin(), data.end(), 0);   //
                                           //
 sgl::GLResource<GL_ARRAY_BUFFER> buffer1; // GLuint buffer1;
@@ -23,21 +24,30 @@ buffer.release();                         //
                                           // We can introduce some type aliases to make things cleaner. 
                                           // All SGL Types are just variations on GLResource.
                                           //
-sgl::ArrayBuffer<int> buffer2{data};      // GLuint buffer2;
-                                          // glGenBuffers(1, &buffer2);
-                                          // glBindBuffer(GL_ARRAY_BUFFER, buffer2);
+sgl::ArrayBuffer<float> buffer2{data};    // GLuint bufs[2];
+sgl::ArrayBuffer<int> buffer3{data2};     // glGenBuffers(2, bufs);
+                                          // glBindBuffer(GL_ARRAY_BUFFER, bufs[0]);
                                           // glBufferStorage(GL_ARRAY_BUFFER, sizeof(float)*data.size(), data.data(), GL_MAP_READ_BIT);
+                                          // glBindBuffer(GL_ARRAY_BUFFER, bufs[1]);
+                                          // glBufferStorage(GL_ARRAY_BUFFER, sizeof(int)*data2.size(), data2.data(), GL_MAP_READ_BIT);
                                           //
                                           // Now add a VAO
                                           //
 sgl::VertexArray vao;                     // GLuint vao;
 sgl::VertexAttribBuilder(vao)             // glGenVertexArrays(1,&vao);
     .addBuffer<float,float>(buffer2)      // glBindVertexArray(vao);
-    .commit();                            // glBindBuffer(GL_ARRAY_BUFFER, buffer2);
-                                          // glEnableVertexAttribArray(0);
+    .addBuffer<int,int,int>(buffer3)      // glBindBuffer(GL_ARRAY_BUFFER, bufs[0]);
+    .commit();                            // glEnableVertexAttribArray(0);
                                           // glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
                                           // glEnableVertexAtrribArray(1);
                                           // glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (GLvoid*)sizeof(float));
+                                          // glBindBuffer(GL_ARRAY_BUFFER, bufs[1]);
+                                          // glEnableVertexAtrribArray(2);
+                                          // glVertexAttribPointer(0, 1, GL_INT, GL_FALSE, 3 * sizeof(int), 0);
+                                          // glEnableVertexAttribArray(3);
+                                          // glVertexAttribPointer(1, 1, GL_INT, GL_FALSE, 3 * sizeof(int), (GLvoid*)sizeof(int));
+                                          // glEnableVertexAttribArray(4);
+                                          // glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, 3 * sizeof(int), (GLvoid*)sizeof(int)*2);
                                           // glBindVertexArray(0);
                                           //
                                           // 
