@@ -29,6 +29,7 @@ public:
     {
         for (size_t i = 0; i < _delay; i++){
             sgl::bufferData(_pbos[i], static_cast<const char*>(0), _frameSize, GL_STREAM_DRAW);
+            _pbos[i].unbind();
         }
         sglDbgCatchGLError();
     }
